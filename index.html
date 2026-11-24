@@ -83,6 +83,10 @@ html.notab .tabpanel{display:none}
 @keyframes qpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 @media (prefers-reduced-motion:reduce){.qpulse{animation:none}}
 html.quiz #now{visibility:hidden}
+html.student #topbar, html.student .tabpanel .tabbar, html.student #libDir, html.student #libSave{display:none !important}
+html.student .pinbar > :not(.keep){display:none}
+@keyframes tfade{from{opacity:.45}to{opacity:0}}
+.tdot{opacity:0;animation-name:tfade;animation-timing-function:linear;animation-fill-mode:forwards}
 #libDlg{background:#10151c;color:#e8eef5;border:1px solid #2c3a4a;border-radius:14px;width:min(560px,92vw);max-height:80vh;padding:16px}
 #libDlg::backdrop{background:rgba(0,0,0,.6)}
 #libList{display:flex;flex-direction:column;gap:6px;overflow:auto;max-height:55vh;margin-top:10px}
@@ -123,15 +127,18 @@ html.quiz #now{visibility:hidden}
   <input type="file" id="gpFile" accept=".gp" hidden>
   <button id="gpLoad">📂 Load .gp</button>
   <select id="gpTrack" disabled aria-label="Track"></select>
-  <button id="gpPlay" disabled>▶ Play</button>
-  <input type="range" id="gpSeek" min="0" max="0" value="0" disabled style="width:260px" aria-label="Song position">
-  <span class="grp" id="gpTime"></span>
+  <button id="gpStart" class="keep" disabled title="Back to the start (or loop start)">⏮</button>
+  <button id="gpPlay" class="keep" disabled>▶ Play</button>
+  <input type="range" id="gpSeek" class="keep" min="0" max="0" value="0" disabled style="width:min(260px,60vw)" aria-label="Song position">
+  <span class="grp keep" id="gpTime"></span>
   <button id="gpLive" disabled title="Go back to the tab you recorded by playing">↩ Live tab</button>
-  <label>Speed <select id="gpSpeed"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option></select></label>
+  <label class="keep">Speed <select id="gpSpeed"><option value="0.5">50%</option><option value="0.6">60%</option><option value="0.75">75%</option><option value="0.9">90%</option><option value="1" selected>100%</option></select></label>
+  <span class="keep" id="loopWrap"><button id="loopBtn" aria-pressed="false" title="Repeat a section">🔁 Loop</button> bars <input type="number" id="loopA" min="1" value="1" style="width:56px" onkeydown="event.stopPropagation()"> – <input type="number" id="loopB" min="1" value="4" style="width:56px" onkeydown="event.stopPropagation()"></span>
+  <label>Trail <select id="trailSel"><option value="0">Off</option><option value="800">Short</option><option value="1500" selected>Medium</option><option value="3000">Long</option></select></label>
   <label>Sync <input type="number" id="gpOff" step="0.01" value="0" style="width:72px" onkeydown="event.stopPropagation()" title="Seconds. Positive = audio starts later than the tab"> s</label>
   <label><input type="checkbox" id="gpSynth"> Synth</label>
-  <button id="libBtn">📚 Library</button>
-  <span class="grp" id="gpInfo"></span>
+  <button id="libBtn" class="keep">📚 Library</button>
+  <span class="grp keep" id="gpInfo"></span>
   <span class="grp">H = settings · S = sticky · T = tab · Q = quiz</span>
 </div>
 <section class="tabpanel" id="tabpanel">
@@ -197,7 +204,9 @@ let tuning = TUNINGS["Standard (E A D G B E)"];
 const active = new Map();
 const held = new Set();
 let sustain = false;
-let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [];
+let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [], trail = [], trailMs = 1500;
+const STUDENT = !(/teacher/.test(location.search) || location.protocol === "file:");
+document.documentElement.classList.toggle("student", STUDENT);
 
 // Geometry (canvas is 1500 wide; height follows the window)
 const CW = 1500, X0 = 115, W = 1320;
@@ -321,6 +330,11 @@ function draw(){
     el("circle", {cx, cy, r:pr, fill: quiz ? "var(--quiz)" : "var(--accent)", class: quiz ? "qpulse" : "", stroke: isRoot && !quiz ? "var(--ink)" : "var(--ring)", "stroke-width": isRoot ? 3 : 2, "pointer-events":"none"});
     const pt = el("text", {x:cx, y:cy + pfs * 0.36, "text-anchor":"middle", fill:"var(--hit-ink)", "font-size":pfs, "font-weight":700, "pointer-events":"none"});
     if (quiz) pt.remove(); else pt.textContent = labelFor(pn.n, pn.f);
+  }
+  if (trailMs){
+    const now = performance.now(); trail = trail.filter(q => now - q.t < trailMs);
+    for (const q of trail) el("circle", {cx:X(q.f), cy:sy(q.s), r:Math.max(11, Math.min(26, gap * 0.28)) + 2, fill: quiz ? "var(--quiz)" : "var(--hit)", class:"tdot",
+      style:`animation-duration:${trailMs}ms;animation-delay:-${Math.round(now - q.t)}ms`, "pointer-events":"none"});
   }
   for (const e of active.values()){
     const note = e.n, vel = e.v;
@@ -449,13 +463,14 @@ function applyBend(s, semis){
   if (hit) scheduleDraw();
 }
 function noteOn(n, v, s = null, toggle = false){ const k = keyOf(n, s); const e = {n, v, s, bend:0}; active.set(k, e); held.delete(k); if (sticky) pinPositions(e, toggle); entryPositions(e).forEach(p => pluck(p.s, p.f, v)); capture(e); draw(); }
+function trailAdd(e){ const t = performance.now(); entryPositions(e).forEach(p => trail.push({s:p.s, f:p.f, t})); }
 function noteOff(n, s = null){
   const k = keyOf(n, s);
   if (sustain){ held.add(k); return; }
-  const e = active.get(k); if (e) entryPositions(e).forEach(p => release(p.s));
+  const e = active.get(k); if (e){ entryPositions(e).forEach(p => release(p.s)); trailAdd(e); }
   active.delete(k); draw();
 }
-function releaseSustain(){ held.forEach(k => { const e = active.get(k); if (e) entryPositions(e).forEach(p => release(p.s)); active.delete(k); }); held.clear(); draw(); }
+function releaseSustain(){ held.forEach(k => { const e = active.get(k); if (e){ entryPositions(e).forEach(p => release(p.s)); trailAdd(e); } active.delete(k); }); held.clear(); draw(); }
 
 // MIDI
 const seenMsg = new Map();
@@ -890,17 +905,32 @@ function gpStop(){
   $("gpPlay").textContent = "▶ Play";
   releaseAll(); active.clear(); held.clear(); draw();
 }
+function gpLoop(){
+  if (!gp || !$("loopBtn").classList.contains("on")) return null;
+  const n = gp.starts.length, a = Math.min(n, Math.max(1, Math.round(+$("loopA").value) || 1)), b = Math.min(n, Math.max(a, Math.round(+$("loopB").value) || a));
+  return [gp.starts[a - 1], b < n ? gp.starts[b] : gp.len];
+}
 function gpPlay(){
   if (gpTimer) return gpStop();
   const ev = gp && gp.events[gp.cur]; if (!ev || !ev.length) return;
   gpAC = gpAC || new (window.AudioContext || window.webkitAudioContext)(); gpAC.resume();
   if (gpPos >= gp.len - .01) gpShow(0);
-  const kb = 240 / gp.bpm, sp = +$("gpSpeed").value, t0 = performance.now() - gpPos * kb / sp * 1000;
+  const lp0 = gpLoop(); if (lp0 && (gpPos < lp0[0] - 1e-6 || gpPos >= lp0[1])) gpShow(lp0[0]);
+  let lastLoop = 0;
+  const kb = 240 / gp.bpm, sp = +$("gpSpeed").value; let t0 = performance.now() - gpPos * kb / sp * 1000;
   let i = ev.findIndex(e => e.t >= gpPos - 1e-6); if (i < 0) i = ev.length;
   if (gpAudio){ gpAudio.playbackRate = sp; gpAudio.currentTime = Math.max(0, gpPos * kb + gpOff); gpAudio.play().catch(() => {}); }
   $("gpPlay").textContent = "■ Pause";
   gpTimer = setInterval(() => {
     const song = gpAudio ? gpAudio.currentTime - gpOff : (performance.now() - t0) / 1000 * sp, pos = song / kb;
+    if (performance.now() - lastLoop < 150) return;
+    const lp = gpLoop();
+    if (lp && pos >= lp[1]){
+      lastLoop = performance.now();
+      i = ev.findIndex(e => e.t >= lp[0] - 1e-6); if (i < 0) i = ev.length;
+      if (gpAudio) gpAudio.currentTime = Math.max(0, lp[0] * kb + gpOff); else t0 = performance.now() - lp[0] * kb / sp * 1000;
+      releaseAll(); active.clear(); held.clear(); draw(); gpShow(lp[0]); return;
+    }
     while (i < ev.length && ev[i].t <= pos){
       const e = ev[i++], dur = Math.max(.15, e.dur * kb / sp);
       if (!gpAudio || $("gpSynth").checked) gpSound(e.n, dur);
@@ -915,6 +945,9 @@ $("gpSeek").addEventListener("input", e => { if (gpTimer){ gpWas = true; gpStop(
 $("gpSeek").addEventListener("change", () => { if (gpWas){ gpWas = false; gpPlay(); } });
 $("gpSpeed").addEventListener("change", () => { if (!gp) return; if (gpTimer){ gpStop(); gpPlay(); } else gpShow(gpPos); });
 $("gpLive").onclick = () => { if (!liveTab) return; if (gpTimer) gpStop(); tab = liveTab; liveTab = null; recOn = true; selId = null; renderTab(false); };
+$("loopBtn").onclick = e => { const on = e.currentTarget.classList.toggle("on"); e.currentTarget.setAttribute("aria-pressed", on); };
+$("gpStart").onclick = () => { const lp = gpLoop(); gpSeekTo(lp ? lp[0] : 0); };
+$("trailSel").onchange = e => { trailMs = +e.target.value; draw(); };
 $("gpLoad").onclick = () => $("gpFile").click();
 async function gpOpen(buf, label, audioUrl, defOff){
   if (gpTimer) gpStop();
@@ -926,7 +959,8 @@ async function gpOpen(buf, label, audioUrl, defOff){
     let sv = null; try{ sv = localStorage.getItem(gpKey); }catch(_){}
     gpOff = sv !== null ? +sv : (defOff || 0); $("gpOff").value = gpOff;
     $("gpTrack").innerHTML = gp.tracks.map((t, i) => `<option value="${i}">${t.name.replace(/</g, "&lt;")}</option>`).join("");
-    $("gpTrack").disabled = $("gpPlay").disabled = false;
+    $("gpTrack").disabled = $("gpPlay").disabled = $("gpStart").disabled = false;
+    const nb = gp.starts.length; $("loopA").max = $("loopB").max = nb; $("loopA").value = 1; $("loopB").value = Math.min(4, nb); $("loopBtn").classList.remove("on");
     $("gpInfo").textContent = (gp.title || label) + " · " + Math.round(gp.bpm) + " BPM" + (gpAudio ? " · audio" : "");
     gpSetTrack(0);
   }catch(err){
@@ -992,7 +1026,7 @@ function fit(){
 }
 new ResizeObserver(fit).observe($("stage"));
 fit();
-initMIDI();
+if (!STUDENT) initMIDI();
 </script>
 </body>
 </html>
