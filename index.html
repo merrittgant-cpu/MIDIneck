@@ -333,7 +333,7 @@ function draw(){
   }
   if (trailMs){
     const now = performance.now(); trail = trail.filter(q => now - q.t < trailMs);
-    for (const q of trail) el("circle", {cx:X(q.f), cy:sy(q.s), r:Math.max(11, Math.min(26, gap * 0.28)) + 2, fill: quiz ? "var(--quiz)" : "var(--hit)", class:"tdot",
+    for (const q of trail) el("circle", {cx:X(bentX(q.f, 0)), cy:sy(q.s), r:Math.max(11, Math.min(26, gap * 0.28)) + 2, fill: quiz ? "var(--quiz)" : "var(--hit)", class:"tdot",
       style:`animation-duration:${trailMs}ms;animation-delay:-${Math.round(now - q.t)}ms`, "pointer-events":"none"});
   }
   for (const e of active.values()){
