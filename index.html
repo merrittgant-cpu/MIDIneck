@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en" data-look="neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIDI Fretboard</title>
+<style>
+:root{
+  --bg:#04070f; --stage1:#10243a; --stage2:#04070f; --line:#1a2e3d;
+  --wood:#0c1824; --wood-hi:#16293b; --inlay:#e9f3f7; --nut:#dfe9ee; --fret:#b4c4cf;
+  --str-wound:#c3d3db; --str-plain:#e3c46c; --head:#070b12; --head-hi:#18232f;
+  --ink:#e8f4f8; --dim:#5f93a6; --hit:#aaff00; --hit-core:#eaffb0; --hit-ink:#04070f;
+  --accent:#00e5c8; --glow:#00e5c8; --glow-op:1; --ring:#00e5c8; --panel:#0d1b26;
+}
+:root[data-look="wood"]{
+  --bg:#1b1713; --stage1:#241d16; --stage2:#1b1713; --line:#3a2e22;
+  --wood:#3a2a1c; --wood-hi:#46331f; --inlay:#2c2016; --nut:#e8dcc0; --fret:#9a9185;
+  --str-wound:#cfc6b4; --str-plain:#cfc6b4; --head:#2c2016; --head-hi:#3a2a1c;
+  --ink:#efe6d4; --dim:#8d8374; --hit:#ffb21e; --hit-core:#ffb21e; --hit-ink:#1b1713;
+  --accent:#4fd1b0; --glow-op:0; --ring:#1b1713; --panel:#2c2016;
+}
+:root[data-look="chroma"]{--bg:#00b140;--stage1:#00b140;--stage2:#00b140;--line:transparent}
+.topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:30;padding:14px 20px 6px;max-height:92vh;overflow:auto;
+  background:color-mix(in srgb,var(--bg) 95%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.5)}
+html.showtop .topbar{display:block}
+.pinbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:10px}
+.pinbar button,.pinbar select{font-size:13px;padding:3px 10px}
+.pinbar label{font-size:13px}
+html.clean .pinbar{display:none}
+html.clean body{padding:0}
+html.clean .stage{border:0;border-radius:0}
+@media (prefers-color-scheme: light){
+  :root[data-look="wood"]{--bg:#efe6d4;--stage1:#f6eedd;--stage2:#efe6d4;--line:#cdbd9f;--wood:#c79a63;--wood-hi:#d3a874;--inlay:#b88950;--nut:#fff8e6;--fret:#6e6657;--str-wound:#4a4337;--str-plain:#4a4337;--head:#b88950;--head-hi:#c79a63;--ink:#241d14;--dim:#6b6253;--hit:#d9480f;--hit-core:#d9480f;--hit-ink:#fff8e6;--accent:#0b7a62;--ring:#efe6d4;--panel:#e4d6ba}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 "Avenir Next","Helvetica Neue",system-ui,sans-serif}
+body{padding:16px 20px;margin:0;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font:600 22px/1 "Avenir Next",system-ui,sans-serif;margin:0;letter-spacing:.2px}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+label{display:flex;gap:6px;align-items:center;color:var(--dim)}
+select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+button{cursor:pointer}
+input[type=range]{accent-color:var(--accent);width:110px}
+select:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#status{color:var(--dim);margin:0 0 10px}
+#status.ok{color:var(--accent)}
+#now{display:flex;align-items:baseline;gap:18px;min-height:64px;margin:6px 0 10px;flex-wrap:wrap}
+#now .notes{font:700 44px/1 "Avenir Next",system-ui,sans-serif;letter-spacing:.5px}
+:root[data-look="neon"] #now .notes{text-shadow:0 0 18px color-mix(in srgb,var(--glow) 60%,transparent)}
+#now .meta{color:var(--dim)}
+.stage{
+  --t:28;
+  position:relative;flex:1;min-height:320px;overflow:hidden;border:1px solid var(--line);border-radius:12px;
+  background:radial-gradient(ellipse 70% 90% at 50% 20%,var(--stage1),var(--stage2) 75%);
+  perspective:1500px;perspective-origin:50% 25%;
+}
+#fb{position:absolute;inset:0;width:100%;height:100%;touch-action:manipulation;
+  transform:rotateX(calc(var(--t) * 1deg)) rotateZ(calc(var(--t) * -0.14deg));
+  transform-origin:50% 55%;transition:transform .25s ease}
+.note-dot{cursor:pointer}
+.ring{transform-box:fill-box;transform-origin:center;animation:ring .9s ease-out forwards}
+@keyframes ring{from{transform:scale(.7);opacity:.95}to{transform:scale(2.1);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ring{animation:none;opacity:.5}#fb{transition:none}}
+.tabpanel{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:8px 10px}
+.tabbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-bottom:8px}
+.tabbar button{font-size:13px;padding:3px 9px}
+.tabbar label{font-size:13px}
+button:disabled{opacity:.4;cursor:default}
+#sticky.on{border-color:var(--hit);color:var(--hit);box-shadow:0 0 10px color-mix(in srgb,var(--hit) 40%,transparent)}
+.tabbar button.on{border-color:var(--hit);color:var(--hit)}
+.tabbar select{font-size:13px;padding:3px 6px}
+.sep{width:1px;height:18px;background:var(--line)}
+.grp{color:var(--dim);font-size:13px}
+.tabwrap{display:flex}
+.tabwrap svg{display:block;flex:none}
+.tabscroll{flex:1;overflow-x:auto;min-width:0}
+.tn{cursor:pointer}
+html.notab .tabpanel{display:none}
+:root{--quiz:#2cff72;--quiz-core:#d4ffe0}
+:root[data-look="chroma"]{--quiz:#ffe600;--quiz-core:#fffbd0}
+.qpulse{transform-box:fill-box;transform-origin:center;animation:qpulse 1s ease-in-out infinite}
+@keyframes qpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+@media (prefers-reduced-motion:reduce){.qpulse{animation:none}}
+html.quiz #now{visibility:hidden}
+#libDlg{background:#10151c;color:#e8eef5;border:1px solid #2c3a4a;border-radius:14px;width:min(560px,92vw);max-height:80vh;padding:16px}
+#libDlg::backdrop{background:rgba(0,0,0,.6)}
+#libList{display:flex;flex-direction:column;gap:6px;overflow:auto;max-height:55vh;margin-top:10px}
+.libItem{text-align:left;padding:10px 12px}
+#quiz.on{border-color:var(--quiz);color:var(--quiz);box-shadow:0 0 10px color-mix(in srgb,var(--quiz) 40%,transparent)}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar">
+<header>
+  <h1>MIDI Fretboard</h1>
+  <div class="controls">
+    <label>Input <select id="input"></select></label>
+    <label>Tuning <select id="tuning"></select></label>
+    <label>Channels <select id="chmode"><option value="string">Per-string (TriplePlay)</option><option value="omni">Omni (all positions)</option></select></label>
+    <label>Ch 1 is <select id="chorder"><option value="low">Low string</option><option value="high">High string</option></select></label>
+    <label>Positions <select id="mode"><option value="all">All</option><option value="low">Lowest only</option></select></label>
+    <label>Bend ± <select id="bendr" title="Pitch-bend range in semitones; match your TriplePlay setting"><option value="1">1</option><option value="2" selected>2</option><option value="12">12</option><option value="24">24</option></select></label>
+    <label>Look <select id="look"><option value="neon">Neon</option><option value="wood">Wood</option><option value="chroma">Green screen (OBS)</option></select></label>
+    <label>Tilt <input type="range" id="tilt" min="0" max="55" value="28" aria-label="Tilt"></label>
+    <label><input type="checkbox" id="lefty"> Left-handed</label>
+    <label><input type="checkbox" id="sharps" checked> Sharps</label>
+    <button id="clear">Clear</button>
+  </div>
+</header>
+<p id="status">Requesting MIDI access…</p>
+<div id="now"><span class="notes" id="noteText">–</span><span class="meta" id="meta"></span></div>
+</div>
+<div class="stage" id="stage"><svg id="fb" viewBox="0 0 1500 300" role="img" aria-label="Guitar fretboard"></svg></div>
+<div class="pinbar" id="pinbar">
+  <button id="sticky" aria-pressed="false" title="Keep played notes lit on the neck (S)">📌 Sticky</button>
+  <button id="unpin" title="Remove all pinned notes">Clear pins</button>
+  <label>Labels <select id="labels"><option value="name">Note names</option><option value="fret">Fret numbers</option><option value="int">Intervals</option></select></label>
+  <label id="rootWrap" style="display:none">Root <select id="rootsel"></select></label>
+  <span class="sep"></span>
+  <button id="quiz" aria-pressed="false" title="Hide note names: only animated green dots (Q)">🎯 Quiz mode</button>
+  <span class="sep"></span>
+  <input type="file" id="gpFile" accept=".gp" hidden>
+  <button id="gpLoad">📂 Load .gp</button>
+  <select id="gpTrack" disabled aria-label="Track"></select>
+  <button id="gpPlay" disabled>▶ Play</button>
+  <input type="range" id="gpSeek" min="0" max="0" value="0" disabled style="width:260px" aria-label="Song position">
+  <span class="grp" id="gpTime"></span>
+  <button id="gpLive" disabled title="Go back to the tab you recorded by playing">↩ Live tab</button>
+  <label>Speed <select id="gpSpeed"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option></select></label>
+  <label>Sync <input type="number" id="gpOff" step="0.01" value="0" style="width:72px" onkeydown="event.stopPropagation()" title="Seconds. Positive = audio starts later than the tab"> s</label>
+  <label><input type="checkbox" id="gpSynth"> Synth</label>
+  <button id="libBtn">📚 Library</button>
+  <span class="grp" id="gpInfo"></span>
+  <span class="grp">H = settings · S = sticky · T = tab · Q = quiz</span>
+</div>
+<section class="tabpanel" id="tabpanel">
+  <div class="tabbar">
+    <strong>Tab</strong>
+    <button id="tRec" class="on">● Rec</button>
+    <button id="tUndo">Undo</button>
+    <button id="tClear">Clear</button>
+    <span class="sep"></span>
+    <span class="grp">Selected note:</span>
+    <button id="tDel">Delete</button>
+    <button id="tDelCol">Delete column</button>
+    <button id="tFm">Fret −</button>
+    <button id="tFp">Fret +</button>
+    <button id="tSu">String ↑</button>
+    <button id="tSd">String ↓</button>
+    <button id="tAlt">Other position</button>
+    <span class="sep"></span>
+    <label>Ghost filter <input type="range" id="ghost" min="0" max="80" value="0" aria-label="Ghost note velocity threshold"> <span id="ghostv">off</span></label>
+    <button id="tClean">Remove ghosts</button>
+    <button id="tCopy">Copy tab</button>
+  </div>
+  <div class="tabbar">
+    <span class="grp">Technique on selected note:</span>
+    <button id="tH">Hammer-on</button>
+    <button id="tP">Pull-off</button>
+    <button id="tS">Slide</button>
+    <button id="tB">Bend</button>
+    <select id="tBendAmt" aria-label="Bend amount"><option value="1">½ step</option><option value="2" selected>full</option><option value="3">1½</option><option value="4">2 steps</option></select>
+    <label><input type="checkbox" id="tBendRel"> release</label>
+    <button id="tTC">Clear technique</button>
+  </div>
+  <div class="tabwrap"><svg id="tabNames"></svg><div class="tabscroll" id="tabScroll"><svg id="tabSvg"></svg></div></div>
+</section>
+
+<dialog id="libDlg">
+  <div style="display:flex;gap:8px;align-items:center">
+    <input id="libQ" type="search" placeholder="Search exercises…" style="flex:1" onkeydown="event.stopPropagation()">
+    <button id="libDir" title="Pick a folder of .gp + audio files on this computer">📁 Local folder</button>
+    <button id="libSave" title="Download library.json for hosting" hidden>⬇ library.json</button>
+    <button id="libX">✕</button>
+  </div>
+  <div id="libList"></div>
+</dialog>
+<script>
+const TUNINGS = {
+  "Standard (E A D G B E)":[40,45,50,55,59,64],
+  "Drop D":[38,45,50,55,59,64],
+  "Half step down":[39,44,49,54,58,63],
+  "Open G":[38,43,50,55,59,62],
+  "DADGAD":[38,45,50,55,57,62],
+  "Bass 4-string (E A D G)":[28,33,38,43],
+  "7-string (B E A D G B E)":[35,40,45,50,55,59,64]
+};
+const FRETS = 22;
+const SHARP = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+const FLAT  = ["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
+
+const $ = id => document.getElementById(id);
+const svg = $("fb");
+const ns = "http://www.w3.org/2000/svg";
+let tuning = TUNINGS["Standard (E A D G B E)"];
+const active = new Map();
+const held = new Set();
+let sustain = false;
+let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [];
+
+// Geometry (canvas is 1500 wide; height follows the window)
+const CW = 1500, X0 = 115, W = 1320;
+let TOP = 40, BOTTOM = 225, VH = 300, curGap = 40;
+const scale = 1 / (1 - Math.pow(2, -FRETS / 12));
+const fretX = n => X0 + W * (1 - Math.pow(2, -n / 12)) * scale;
+const flipped = () => $("lefty").checked;
+const X = x => flipped() ? CW - x : x;
+
+function noteName(n){ return ($("sharps").checked ? SHARP : FLAT)[n % 12]; }
+function el(tag, attrs, parent){
+  const e = document.createElementNS(ns, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent || svg).appendChild(e);
+  return e;
+}
+function grad(type, id, attrs, stops){
+  const g = el(type, Object.assign({id}, attrs), defs);
+  stops.forEach(([o, c]) => el("stop", {offset:o, style:"stop-color:" + c}, g));
+}
+let defs;
+
+function positions(note){
+  const out = [];
+  tuning.forEach((open, s) => { const f = note - open; if (f >= 0 && f <= FRETS) out.push({s, f}); });
+  if ($("mode").value === "low" && out.length){ out.sort((a, b) => a.f - b.f); return [out[0]]; }
+  return out;
+}
+function entryPositions(e){
+  if (e.s !== null && e.s < tuning.length){
+    const f = e.n - tuning[e.s];
+    return (f >= 0 && f <= FRETS) ? [{s:e.s, f}] : [];
+  }
+  return positions(e.n);
+}
+function chanToString(ch){
+  if ($("chmode").value !== "string") return null;
+  const n = tuning.length;
+  const s = $("chorder").value === "low" ? ch : n - 1 - ch;
+  return (s >= 0 && s < n) ? s : null;
+}
+
+function draw(){
+  svg.innerHTML = "";
+  const n = tuning.length;
+  const gap = (BOTTOM - TOP) / (n - 1);
+  const sy = s => TOP + (n - 1 - s) * gap;
+  const bx1 = Math.min(X(X0), X(fretX(FRETS))), bx2 = Math.max(X(X0), X(fretX(FRETS)));
+  const glowOn = getComputedStyle(document.documentElement).getPropertyValue("--glow-op").trim() !== "0";
+
+  curGap = gap;
+  const ir = Math.max(7, Math.min(16, gap * 0.13));
+  defs = el("defs", {});
+  const f1 = el("filter", {id:"fGlow", filterUnits:"userSpaceOnUse", x:-100, y:-100, width:1700, height:1300}, defs);
+  el("feGaussianBlur", {stdDeviation:6}, f1);
+  const f2 = el("filter", {id:"fSoft", filterUnits:"userSpaceOnUse", x:-100, y:-100, width:1700, height:1300}, defs);
+  el("feGaussianBlur", {stdDeviation:3}, f2);
+  grad("linearGradient", "gBoard", {x1:0, y1:0, x2:0, y2:1}, [[0, "var(--wood-hi)"], [1, "var(--wood)"]]);
+  grad("radialGradient", "gHit", {cx:".4", cy:".35", r:".75"}, [[0, "var(--hit-core)"], [1, "var(--hit)"]]);
+  grad("radialGradient", "gQuiz", {cx:".4", cy:".35", r:".75"}, [[0, "var(--quiz-core)"], [1, "var(--quiz)"]]);
+
+  // board
+  el("rect", {x:bx1, y:TOP - 14, width:bx2 - bx1, height:BOTTOM - TOP + 28, rx:6, fill:"url(#gBoard)"});
+  // inlays (pearl)
+  [3,5,7,9,15,17,19,21].forEach(f => {
+    el("circle", {cx:X((fretX(f - 1) + fretX(f)) / 2), cy:(TOP + BOTTOM) / 2, r:ir, fill:"var(--inlay)"});
+  });
+  const cx12 = X((fretX(11) + fretX(12)) / 2);
+  [TOP + gap * (n > 5 ? 1.5 : 1), BOTTOM - gap * (n > 5 ? 1.5 : 1)].forEach(cy => el("circle", {cx:cx12, cy, r:ir, fill:"var(--inlay)"}));
+  // frets
+  for (let f = 0; f <= FRETS; f++){
+    const x = X(fretX(f));
+    el("line", {x1:x, x2:x, y1:TOP - 14, y2:BOTTOM + 14, stroke: f === 0 ? "var(--nut)" : "var(--fret)", "stroke-width": f === 0 ? 7 : 2.2});
+    if (f > 0 && glowOn) el("line", {x1:x + 1.4, x2:x + 1.4, y1:TOP - 14, y2:BOTTOM + 14, stroke:"#fff", "stroke-width":.8, opacity:.35});
+    if ([3,5,7,9,12,15,17,19,21].includes(f)){
+      const t = el("text", {x:X((fretX(f - 1) + fretX(f)) / 2), y:BOTTOM + 38, "text-anchor":"middle", fill:"var(--dim)", "font-size":15, "font-weight":600}); t.textContent = f;
+    }
+  }
+  // glowing bass-side edge
+  if (glowOn){
+    const ey = BOTTOM + 14;
+    el("line", {x1:bx1, x2:bx2, y1:ey, y2:ey, stroke:"var(--glow)", "stroke-width":9, opacity:.8, filter:"url(#fGlow)"});
+    el("line", {x1:bx1, x2:bx2, y1:ey, y2:ey, stroke:"var(--glow)", "stroke-width":3.2});
+    el("line", {x1:bx1, x2:bx2, y1:ey, y2:ey, stroke:"#f2ffff", "stroke-width":1.2, opacity:.9});
+  }
+  // strings (wound = silver, plain = gold) drawn as paths so they can vibrate
+  const lit = new Set();
+  for (const e of active.values()) entryPositions(e).forEach(p => lit.add(p.s));
+  strEl = []; glowEl = []; strGeo = [];
+  const kw = Math.min(1.8, Math.max(1, gap / 42));
+  for (let s = 0; s < n; s++){
+    const w = (1 + (n - 1 - s) * 0.5 * (6 / n)) * kw;
+    const wound = s < n - 3;
+    const y = sy(s);
+    const d = `M${bx1} ${y}L${bx2} ${y}`;
+    const base = lit.has(s) ? .55 : 0;
+    if (glowOn) glowEl[s] = el("path", {d, fill:"none", stroke:"var(--glow)", "stroke-width":w + 5, opacity:base, filter:"url(#fSoft)", "pointer-events":"none"});
+    strEl[s] = el("path", {d, fill:"none", stroke: wound ? "var(--str-wound)" : "var(--str-plain)", "stroke-width": w.toFixed(2), "pointer-events":"none"});
+    strGeo[s] = {y, base, d};
+  }
+  // click targets
+  for (let s = 0; s < n; s++){
+    for (let f = 0; f <= FRETS; f++){
+      const x1 = f === 0 ? fretX(0) - 40 : fretX(f - 1), x2 = f === 0 ? fretX(0) : fretX(f);
+      const a = X(x1), b = X(x2);
+      const r = el("rect", {x:Math.min(a, b), y:sy(s) - gap / 2, width:Math.abs(b - a), height:gap, fill:"transparent", class:"note-dot"});
+      const note = tuning[s] + f;
+      r.addEventListener("pointerdown", () => noteOn(note, 96, s, true));
+      const up = () => noteOff(note, s);
+      r.addEventListener("pointerup", up);
+      r.addEventListener("pointerleave", up);
+    }
+  }
+  // active notes: glowing orb + ring
+  // pinned (sticky) fingers stay lit
+  const pr = Math.max(11, Math.min(26, gap * 0.28)), pfs = Math.max(12, pr * 0.85), rp = rootPc();
+  for (const pn of pins.values()){
+    if (pn.s >= n) continue;
+    const cx = X(fretCenter(pn.f)), cy = sy(pn.s), isRoot = rp !== null && pn.n % 12 === rp;
+    if (glowOn) el("circle", {cx, cy, r:pr + 6, fill: quiz ? "var(--quiz)" : "var(--accent)", opacity:.35, filter:"url(#fGlow)", "pointer-events":"none"});
+    el("circle", {cx, cy, r:pr, fill: quiz ? "var(--quiz)" : "var(--accent)", class: quiz ? "qpulse" : "", stroke: isRoot && !quiz ? "var(--ink)" : "var(--ring)", "stroke-width": isRoot ? 3 : 2, "pointer-events":"none"});
+    const pt = el("text", {x:cx, y:cy + pfs * 0.36, "text-anchor":"middle", fill:"var(--hit-ink)", "font-size":pfs, "font-weight":700, "pointer-events":"none"});
+    if (quiz) pt.remove(); else pt.textContent = labelFor(pn.n, pn.f);
+  }
+  for (const e of active.values()){
+    const note = e.n, vel = e.v;
+    for (const {s, f} of entryPositions(e)){
+      const cx = X(bentX(f, e.bend));
+      const cy = sy(s);
+      const r = Math.max(11, Math.min(26, gap * 0.28)) + vel / 127 * 5, fs = Math.max(12, r * 0.85);
+      if (glowOn){
+        el("circle", {cx, cy, r:r + 8, fill: quiz ? "var(--quiz)" : "var(--hit)", opacity:.55, filter:"url(#fGlow)", "pointer-events":"none"});
+        el("circle", {cx, cy, r:r + 4, fill:"none", stroke:"var(--ring)", "stroke-width":2, class:"ring", "pointer-events":"none"});
+      }
+      el("circle", {cx, cy, r, fill: quiz ? "url(#gQuiz)" : "url(#gHit)", class: quiz ? "qpulse" : "", stroke:"var(--ring)", "stroke-width":2, "pointer-events":"none"});
+      const t = el("text", {x:cx, y:cy + fs * 0.36, "text-anchor":"middle", fill:"var(--hit-ink)", "font-size":fs, "font-weight":700, "pointer-events":"none"});
+      if (quiz) t.remove(); else t.textContent = labelFor(note, f);
+    }
+  }
+  // string names
+  for (let s = 0; s < n; s++){
+    const t = el("text", {x:flipped() ? bx2 + 22 : bx1 - 22, y:sy(s) + 4, "text-anchor":"middle", fill:"var(--dim)", "font-size":13, "font-weight":600, stroke:"var(--head)", "stroke-width":3, "paint-order":"stroke"});
+    t.textContent = quiz ? "" : noteName(tuning[s]);
+  }
+  // readout
+  const list = [...active.values()].sort((a, b) => a.n - b.n);
+  const pinList = [...pins.values()].filter(p => p.s < tuning.length).sort((a, b) => a.n - b.n);
+  const pinNames = [...new Set(pinList.map(p => noteName(p.n)))];
+  $("noteText").textContent = list.length ? list.map(e => noteName(e.n)).join("  ") : (pinNames.length ? pinNames.join("  ") : "–");
+  $("meta").textContent = list.map(e => {
+    const base = noteName(e.n) + (Math.floor(e.n / 12) - 1);
+    if (e.s === null || e.s >= tuning.length) return base;
+    const f = e.n - tuning[e.s];
+    const bt = Math.abs(e.bend || 0) > 0.05 ? ", bend " + (e.bend > 0 ? "+" : "") + e.bend.toFixed(1) : "";
+    return `${base} (string ${tuning.length - e.s}, ${f < 0 || f > FRETS ? "out of range: check tuning" : "fret " + f}${bt})`;
+  }).join(", ");
+  if (!list.length && pinList.length) $("meta").textContent = "pinned · " + pinList.length + (pinList.length > 1 ? " positions" : " position");
+  renderVib(performance.now());
+}
+
+// ---- string vibration
+let strEl = [], glowEl = [], strGeo = [], raf = 0;
+const vib = {};
+function pluck(s, f, vel){
+  const A = Math.max(3, Math.min(24, curGap * (0.08 + 0.1 * vel / 127)));
+  const hz = 7 + (s / Math.max(1, tuning.length - 1)) * 5;
+  vib[s] = {t0:performance.now(), A, f, hz, rel:null, envRel:1};
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+function release(s){
+  const v = vib[s];
+  if (v && v.rel === null){ v.rel = performance.now(); v.envRel = Math.exp(-1.6 * (v.rel - v.t0) / 1000); }
+}
+function releaseAll(){ for (const s in vib) release(+s); }
+function renderVib(now){
+  const xb = X(fretX(FRETS)), nutX = X(fretX(0));
+  for (const key in vib){
+    const s = +key, v = vib[key], g = strGeo[s], el_ = strEl[s];
+    if (!g || !el_) continue;
+    const t = (now - v.t0) / 1000;
+    const env = v.rel === null ? Math.exp(-1.6 * t) : v.envRel * Math.exp(-8 * (now - v.rel) / 1000);
+    const amp = v.A * env;
+    if (amp < 0.25){
+      delete vib[key];
+      el_.setAttribute("d", g.d);
+      if (glowEl[s]) glowEl[s].setAttribute("opacity", g.base);
+      continue;
+    }
+    const xa = X(fretX(v.f));
+    const N = 48;
+    let d = `M${nutX} ${g.y}L${xa} ${g.y}`;
+    const ph = Math.cos(2 * Math.PI * v.hz * t);
+    for (let i = 1; i <= N; i++){
+      const u = i / N;
+      d += `L${(xa + (xb - xa) * u).toFixed(1)} ${(g.y + amp * Math.sin(Math.PI * u) * ph).toFixed(2)}`;
+    }
+    el_.setAttribute("d", d);
+    if (glowEl[s]){
+      glowEl[s].setAttribute("d", d);
+      glowEl[s].setAttribute("opacity", Math.max(g.base, Math.min(.9, env * .9)));
+    }
+  }
+}
+function tick(now){
+  renderVib(now);
+  raf = Object.keys(vib).length ? requestAnimationFrame(tick) : 0;
+}
+
+const keyOf = (n, s) => (s === null ? "o" : s) + ":" + n;
+const pins = new Map();   // sticky fingers: "s:f" -> {s, f, n, order}
+let sticky = false, pinSeq = 0;
+const INTERVALS = ["R","♭2","2","♭3","3","4","♭5","5","♭6","6","♭7","7"];
+function rootPc(){
+  const v = $("rootsel").value;
+  if (v && v !== "auto") return +v;
+  let best = null;
+  for (const p of pins.values()) if (!best || p.order < best.order) best = p;
+  return best ? best.n % 12 : null;
+}
+function labelFor(n, f){
+  const m = $("labels").value;
+  if (m === "fret") return f;
+  if (m === "int"){ const r = rootPc(); if (r !== null) return INTERVALS[((n % 12) - r + 12) % 12]; }
+  return noteName(n);
+}
+function pinPositions(e, toggle){
+  entryPositions(e).forEach(({s, f}) => {
+    const k = s + ":" + f;
+    if (toggle && pins.has(k)) pins.delete(k);
+    else if (!pins.has(k)) pins.set(k, {s, f, n:e.n, order:++pinSeq});
+  });
+}
+function setSticky(v){
+  sticky = v;
+  const b = $("sticky");
+  b.classList.toggle("on", v); b.setAttribute("aria-pressed", v); b.textContent = v ? "📌 Sticky: on" : "📌 Sticky";
+}
+const fretCenter = f => f === 0 ? fretX(0) - 24 : (fretX(f - 1) + fretX(f)) / 2;
+function bentX(f, b){   // slide the dot along the string by a fractional number of frets
+  const ff = Math.max(0, Math.min(FRETS, f + (b || 0)));
+  const lo = Math.floor(ff), hi = Math.min(FRETS, lo + 1), t = ff - lo;
+  return fretCenter(lo) * (1 - t) + fretCenter(hi) * t;
+}
+let drawQ = 0;
+function scheduleDraw(){ if (!drawQ) drawQ = requestAnimationFrame(() => { drawQ = 0; draw(); }); }
+function applyBend(s, semis){
+  let hit = false;
+  for (const e of active.values()) if (s === null || e.s === s){ e.bend = semis; hit = true; }
+  if (hit) scheduleDraw();
+}
+function noteOn(n, v, s = null, toggle = false){ const k = keyOf(n, s); const e = {n, v, s, bend:0}; active.set(k, e); held.delete(k); if (sticky) pinPositions(e, toggle); entryPositions(e).forEach(p => pluck(p.s, p.f, v)); capture(e); draw(); }
+function noteOff(n, s = null){
+  const k = keyOf(n, s);
+  if (sustain){ held.add(k); return; }
+  const e = active.get(k); if (e) entryPositions(e).forEach(p => release(p.s));
+  active.delete(k); draw();
+}
+function releaseSustain(){ held.forEach(k => { const e = active.get(k); if (e) entryPositions(e).forEach(p => release(p.s)); active.delete(k); }); held.clear(); draw(); }
+
+// MIDI
+const seenMsg = new Map();
+function onMIDI(e){
+  const [st, d1, d2] = e.data;
+  if ((st & 0xe0) === 0x80){   // note on/off: drop an identical message arriving within 25 ms (second port or double send)
+    const k = st + "," + d1 + "," + d2, t = performance.now();
+    if (seenMsg.has(k) && t - seenMsg.get(k) < 25) return;
+    seenMsg.set(k, t);
+  }
+  const cmd = st & 0xf0, s = chanToString(st & 0x0f);
+  if (cmd === 0x90 && d2 > 0) noteOn(d1, d2, s);
+  else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)) noteOff(d1, s);
+  else if (cmd === 0xe0){   // pitch bend: per-string channel in TriplePlay mono mode
+    if ($("chmode").value === "string" && s === null) return;
+    applyBend($("chmode").value === "string" ? s : null, (((d2 << 7) | d1) - 8192) / 8192 * +$("bendr").value);
+  }
+  else if (cmd === 0xb0 && d1 === 64){
+    const was = sustain; sustain = d2 >= 64;
+    if (was && !sustain) releaseSustain();
+  } else if (cmd === 0xb0 && (d1 === 123 || d1 === 120)){ releaseAll(); active.clear(); held.clear(); draw(); }
+}
+function bindInputs(){
+  const sel = $("input"), prev = sel.value;
+  sel.innerHTML = "";
+  const inputs = [...midiAccess.inputs.values()];
+  const all = document.createElement("option"); all.value = "all"; all.textContent = "All inputs"; sel.appendChild(all);
+  inputs.forEach(i => { const o = document.createElement("option"); o.value = i.id; o.textContent = i.name; sel.appendChild(o); });
+  let want = ""; try{ want = localStorage.getItem("fbInput") || ""; }catch(e){}
+  if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+  else { const o = [...sel.options].find(o => o.textContent === want) || [...sel.options].find(o => /TriplePlay/i.test(o.textContent)); if (o) sel.value = o.value; }
+  inputs.forEach(i => { i.onmidimessage = ev => { if (sel.value === "all" || sel.value === i.id) onMIDI(ev); }; });
+  const s = $("status");
+  s.textContent = inputs.length ? `Listening: ${inputs.map(i => i.name).join(", ")}` : "No MIDI devices found. Connect one, or click the fretboard to test.";
+  s.className = inputs.length ? "ok" : "";
+}
+async function initMIDI(){
+  if (!navigator.requestMIDIAccess){
+    $("status").textContent = "This browser has no Web MIDI support. Open the file in Chrome, Edge or Brave. You can still click the fretboard to test.";
+    return;
+  }
+  try{
+    midiAccess = await navigator.requestMIDIAccess();
+    midiAccess.onstatechange = bindInputs;
+    bindInputs();
+  }catch(err){
+    $("status").textContent = "MIDI access was blocked. Allow MIDI for this page in the browser’s site settings, then reload.";
+  }
+}
+
+// UI wiring
+Object.keys(TUNINGS).forEach(k => { const o = document.createElement("option"); o.textContent = k; $("tuning").appendChild(o); });
+$("tuning").onchange = e => { tuning = TUNINGS[e.target.value]; pins.clear(); draw(); renderTab(false); };
+["mode","labels","lefty","sharps","chmode","chorder","bendr","rootsel"].forEach(id => $(id).addEventListener("change", draw));
+$("clear").onclick = () => { releaseAll(); active.clear(); held.clear(); draw(); };
+
+function setLook(v){ document.documentElement.dataset.look = v; draw(); }
+function setTilt(v){ $("stage").style.setProperty("--t", v); }
+$("look").onchange = e => setLook(e.target.value);
+$("tilt").oninput = e => setTilt(e.target.value);
+
+// Startup defaults (your layout) + remembered changes
+const PREF_IDS = ["tuning","chmode","chorder","mode","labels","bendr","look","tilt","lefty","sharps"];
+const DEFAULTS = {tuning:"Standard (E A D G B E)", chmode:"string", chorder:"high", mode:"all", labels:"name", bendr:"2", look:"neon", tilt:"55", lefty:false, sharps:true};
+function loadPrefs(){
+  let saved = {};
+  try{ saved = JSON.parse(localStorage.getItem("fbPrefs") || "{}"); }catch(e){}
+  PREF_IDS.forEach(id => {
+    const v = id in saved ? saved[id] : DEFAULTS[id], c = $(id);
+    if (c.type === "checkbox") c.checked = !!v; else c.value = v;
+  });
+  tuning = TUNINGS[$("tuning").value] || TUNINGS[DEFAULTS.tuning];
+  document.documentElement.dataset.look = $("look").value;
+}
+function savePrefs(){
+  const o = {};
+  PREF_IDS.forEach(id => { const c = $(id); o[id] = c.type === "checkbox" ? c.checked : c.value; });
+  try{ localStorage.setItem("fbPrefs", JSON.stringify(o)); }catch(e){}
+}
+PREF_IDS.forEach(id => $(id).addEventListener(id === "tilt" ? "input" : "change", savePrefs));
+$("input").addEventListener("change", () => { try{ localStorage.setItem("fbInput", $("input").selectedOptions[0].textContent); }catch(e){} });
+loadPrefs();
+setTilt($("tilt").value);
+function fillRoot(){
+  const cur = $("rootsel").value || "auto";
+  $("rootsel").innerHTML = '<option value="auto">auto</option>' + Array.from({length:12}, (_, i) => `<option value="${i}">${noteName(i)}</option>`).join("");
+  $("rootsel").value = cur;
+}
+const syncRoot = () => { $("rootWrap").style.display = $("labels").value === "int" ? "" : "none"; };
+fillRoot(); syncRoot();
+$("sharps").addEventListener("change", fillRoot);
+$("labels").addEventListener("change", syncRoot);
+$("sticky").onclick = () => setSticky(!sticky);
+$("unpin").onclick = () => { pins.clear(); draw(); };
+
+if (/[?&]clean/.test(location.search)) document.documentElement.classList.add("clean", "notab");
+addEventListener("keydown", e => {
+  if (e.key === "Escape") document.documentElement.classList.remove("showtop");
+  if (/SELECT|INPUT/.test(e.target.tagName) || e.metaKey || e.ctrlKey) return;
+  const k = e.key.toLowerCase();
+  if (k === "h") toggleTop();
+  else if (k === "t") document.documentElement.classList.toggle("notab");
+  else if (k === "s") setSticky(!sticky);
+  else if (k === "q") setQuiz(!quiz);
+});
+
+// ---- tablature capture / editing
+let tab = [], undoStack = [], recOn = true, selId = null, nid = 1, lastCapT = 0;
+const CWID = 38, LH = 22, TTOP = 32;
+function snap(){ undoStack.push(JSON.stringify(tab)); if (undoStack.length > 80) undoStack.shift(); }
+function capture(e){
+  if (!recOn || gpTimer || e.v < +$("ghost").value) return;
+  const ps = entryPositions(e);
+  if (!ps.length) return;
+  const p = ps.reduce((a, b) => b.f < a.f ? b : a);
+  const now = performance.now();
+  let col = tab[tab.length - 1];
+  if (col && now - lastCapT < 70 && col.notes.some(x => x.n === e.n)) return;   // same pitch twice in one strum = duplicate
+  if (!(col && now - lastCapT < 70 && !col.notes.some(x => x.s === p.s))){ snap(); col = {notes:[]}; tab.push(col); }
+  col.notes.push({id:nid++, s:p.s, f:p.f, n:e.n, v:e.v});
+  lastCapT = now;
+  renderTab(true);
+}
+function findSel(){
+  if (selId === null) return null;
+  for (let c = 0; c < tab.length; c++){
+    const i = tab[c].notes.findIndex(x => x.id === selId);
+    if (i >= 0) return {c, i, col:tab[c], note:tab[c].notes[i]};
+  }
+  return null;
+}
+function edit(fn){
+  const sel = findSel(); if (!sel) return;
+  snap(); fn(sel); renderTab(false);
+}
+function prevOnString(c, s){
+  for (let k = c - 1; k >= 0; k--){ const nt = tab[k].notes.find(x => x.s === s); if (nt) return {c:k, note:nt}; }
+  return null;
+}
+function renderTab(scrollEnd){
+  const n = tuning.length, ghost = +$("ghost").value;
+  const H = (n - 1) * LH + TTOP * 2;
+  const y = s => TTOP + (n - 1 - s) * LH;
+  const wMin = $("tabScroll").clientWidth || 600;
+  const w = Math.max(tab.length * CWID + 50, wMin);
+  const names = $("tabNames"), sv = $("tabSvg");
+  names.innerHTML = ""; sv.innerHTML = "";
+  names.setAttribute("width", 40); names.setAttribute("height", H);
+  sv.setAttribute("width", w); sv.setAttribute("height", H);
+  for (let s = 0; s < n; s++){
+    const t = el("text", {x:30, y:y(s) + 4, "text-anchor":"end", fill:"var(--dim)", "font-size":13, "font-weight":600}, names);
+    t.textContent = quiz ? "" : noteName(tuning[s]);
+    el("line", {x1:0, x2:w, y1:y(s), y2:y(s), stroke:"var(--dim)", "stroke-width":1, opacity:.7}, sv);
+  }
+  el("line", {x1:1, x2:1, y1:y(n - 1), y2:y(0), stroke:"var(--dim)", "stroke-width":2}, sv);
+  const sel = findSel();
+  if (!tab.length){
+    const t = el("text", {x:20, y:H / 2 + 4, fill:"var(--dim)", "font-size":13}, sv);
+    t.textContent = recOn ? "Play a note and it will appear here." : "Recording is paused.";
+  }
+  tab.forEach((col, c) => {
+    const cx = 28 + c * CWID;
+    if (liveTab){
+      if (c && col.bar !== tab[c - 1].bar){
+        el("line", {x1:cx - CWID / 2, x2:cx - CWID / 2, y1:y(n - 1) - 6, y2:y(0) + 6, stroke:"var(--dim)", "stroke-width":1, opacity:.7}, sv);
+        const bt = el("text", {x:cx - CWID / 2 + 3, y:14, fill:"var(--dim)", "font-size":10}, sv); bt.textContent = col.bar + 1;
+      }
+    }
+    if (sel && sel.c === c) el("rect", {x:cx - CWID / 2 + 2, y:4, width:CWID - 4, height:H - 8, rx:6, fill:"var(--accent)", opacity:.12}, sv);
+    col.notes.forEach(nt => {
+      if (nt.s >= n) return;
+      const g = el("g", {class:"tn", "data-id":nt.id, opacity: nt.v < ghost ? .35 : 1}, sv);
+      const on = nt.id === selId;
+      el("rect", {x:cx - 14, y:y(nt.s) - 10, width:28, height:20, rx:5, fill: on ? "var(--hit)" : "var(--panel)", stroke: on ? "var(--ring)" : "none", "stroke-width":2}, g);
+      const t = el("text", {x:cx, y:y(nt.s) + 5, "text-anchor":"middle", fill: on ? "var(--hit-ink)" : "var(--ink)", "font-size":14, "font-weight":700}, g);
+      t.textContent = nt.f;
+      const tt = el("title", {}, g);
+      tt.textContent = noteName(nt.n) + (Math.floor(nt.n / 12) - 1) + " · velocity " + nt.v;
+    });
+  });
+  tab.forEach((col, c) => {
+    const cx = 28 + c * CWID;
+    col.notes.forEach(nt => {
+      if (nt.s >= n) return;
+      const yy = y(nt.s);
+      if (nt.tech){
+        const pv = prevOnString(c, nt.s);
+        if (pv){
+          const x1 = 28 + pv.c * CWID, x2 = cx, mid = (x1 + x2) / 2;
+          if (nt.tech === "h" || nt.tech === "p"){
+            el("path", {d:`M${x1 + 4} ${yy - 12}Q${mid} ${yy - 28} ${x2 - 4} ${yy - 12}`, fill:"none", stroke:"var(--accent)", "stroke-width":1.6}, sv);
+            const t = el("text", {x:mid, y:yy - 21, "text-anchor":"middle", fill:"var(--accent)", "font-size":11, "font-weight":700}, sv);
+            t.textContent = nt.tech;
+          } else {
+            const up = nt.tech === "/";
+            el("line", {x1:x1 + 15, x2:x2 - 15, y1:yy + (up ? 6 : -6), y2:yy + (up ? -6 : 6), stroke:"var(--accent)", "stroke-width":2.2, "stroke-linecap":"round"}, sv);
+          }
+        }
+      }
+      if (nt.bd){
+        const t = el("text", {x:cx, y:yy - 13, "text-anchor":"middle", fill:"var(--accent)", "font-size":11, "font-weight":700}, sv);
+        t.textContent = "b" + (nt.f + nt.bd.k) + (nt.bd.r ? "r" + nt.f : "");
+      }
+    });
+  });
+  if (liveTab){ el("rect", {id:"tabHead", x:0, y:2, width:CWID - 4, height:H - 4, rx:6, fill:"var(--hit)", opacity:.2, "pointer-events":"none"}, sv); headTo(gpCol, false); }
+  if (scrollEnd) $("tabScroll").scrollLeft = $("tabScroll").scrollWidth;
+  updateTabButtons();
+}
+function updateTabButtons(){
+  const has = !!findSel(), th = +$("ghost").value;
+  ["tDel","tDelCol","tFm","tFp","tSu","tSd","tAlt","tH","tP","tS","tB","tTC"].forEach(id => $(id).disabled = !has);
+  const sn = has ? findSel().note : null;
+  $("tH").classList.toggle("on", !!sn && sn.tech === "h");
+  $("tP").classList.toggle("on", !!sn && sn.tech === "p");
+  $("tS").classList.toggle("on", !!sn && (sn.tech === "/" || sn.tech === "\\"));
+  $("tB").classList.toggle("on", !!sn && !!sn.bd);
+  $("tUndo").disabled = !undoStack.length;
+  $("tClear").disabled = !tab.length;
+  $("tCopy").disabled = !tab.length;
+  $("tClean").disabled = !(th > 0 && tab.some(c => c.notes.some(x => x.v < th)));
+  $("ghostv").textContent = th > 0 ? "vel < " + th : "off";
+  $("tRec").textContent = recOn ? "● Rec" : "❚❚ Paused";
+  $("tRec").classList.toggle("on", recOn);
+}
+function tabText(){
+  const n = tuning.length, C = tab.length;
+  const cellOf = nt => (nt.tech || "") + nt.f + (nt.bd ? "b" + (nt.f + nt.bd.k) + (nt.bd.r ? "r" + nt.f : "") : "");
+  const w = tab.map(col => Math.max(1, ...col.notes.filter(x => x.s < n).map(x => cellOf(x).length)));
+  const sep = tab.map((col, c) => {
+    if (c + 1 >= C) return 2;
+    const adj = tab[c + 1].notes.some(x => { if (!x.tech || x.s >= n) return false; const pv = prevOnString(c + 1, x.s); return pv && pv.c === c; });
+    return adj ? 0 : 2;
+  });
+  const lines = [];
+  for (let s = n - 1; s >= 0; s--){
+    let row = noteName(tuning[s]).padEnd(2) + "|-";
+    tab.forEach((col, c) => {
+      const nt = col.notes.find(x => x.s === s);
+      row += (nt ? cellOf(nt) : "").padEnd(w[c], "-") + "-".repeat(sep[c]);
+    });
+    lines.push(row + "|");
+  }
+  return lines.join("\n");
+}
+$("tabSvg").addEventListener("click", ev => {
+  const g = ev.target.closest(".tn");
+  selId = g ? +g.getAttribute("data-id") : null;
+  const sl = liveTab && findSel(); if (sl) gpSeekTo(tab[sl.c].t);
+  renderTab(false);
+});
+const setTech = t => edit(({note}) => { if (note.tech === t) delete note.tech; else note.tech = t; });
+$("tH").onclick = () => setTech("h");
+$("tP").onclick = () => setTech("p");
+$("tS").onclick = () => edit(({c, note}) => {
+  if (note.tech === "/" || note.tech === "\\"){ delete note.tech; return; }
+  const pv = prevOnString(c, note.s);
+  note.tech = (pv && note.f < pv.note.f) ? "\\" : "/";
+});
+$("tB").onclick = () => edit(({note}) => { if (note.bd) delete note.bd; else note.bd = {k:+$("tBendAmt").value, r:$("tBendRel").checked}; });
+const updBend = () => { const sel = findSel(); if (sel && sel.note.bd) edit(({note}) => { note.bd = {k:+$("tBendAmt").value, r:$("tBendRel").checked}; }); };
+$("tBendAmt").onchange = updBend; $("tBendRel").onchange = updBend;
+$("tTC").onclick = () => edit(({note}) => { delete note.tech; delete note.bd; });
+$("tRec").onclick = () => { recOn = !recOn; renderTab(false); };
+$("tUndo").onclick = () => { if (!undoStack.length) return; tab = JSON.parse(undoStack.pop()); selId = null; renderTab(false); };
+$("tClear").onclick = () => { if (!tab.length) return; snap(); tab = []; selId = null; renderTab(false); };
+$("tDel").onclick = () => edit(({c, i}) => { tab[c].notes.splice(i, 1); if (!tab[c].notes.length) tab.splice(c, 1); selId = null; });
+$("tDelCol").onclick = () => edit(({c}) => { tab.splice(c, 1); selId = null; });
+$("tFm").onclick = () => edit(({note}) => { if (note.f > 0){ note.f--; note.n = tuning[note.s] + note.f; } });
+$("tFp").onclick = () => edit(({note}) => { if (note.f < FRETS){ note.f++; note.n = tuning[note.s] + note.f; } });
+const moveStr = d => edit(({col, note}) => {
+  const ns = note.s + d;
+  if (ns < 0 || ns >= tuning.length || col.notes.some(x => x.s === ns)) return;
+  note.s = ns; note.n = tuning[ns] + note.f;
+});
+$("tSu").onclick = () => moveStr(1);
+$("tSd").onclick = () => moveStr(-1);
+$("tAlt").onclick = () => edit(({col, note}) => {
+  const opts = [];
+  tuning.forEach((open, s) => { const f = note.n - open; if (f >= 0 && f <= FRETS && (s === note.s || !col.notes.some(x => x.s === s))) opts.push({s, f}); });
+  if (opts.length < 2) return;
+  const k = opts.findIndex(o => o.s === note.s);
+  const nx = opts[(k + 1) % opts.length];
+  note.s = nx.s; note.f = nx.f;
+});
+$("ghost").oninput = () => renderTab(false);
+$("tClean").onclick = () => {
+  const th = +$("ghost").value; if (!th) return;
+  snap();
+  tab.forEach(c => { c.notes = c.notes.filter(x => x.v >= th); });
+  tab = tab.filter(c => c.notes.length);
+  renderTab(false);
+};
+$("tCopy").onclick = async () => {
+  const txt = tabText(), b = $("tCopy");
+  try{ await navigator.clipboard.writeText(txt); }
+  catch(e){ const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); }catch(_){} ta.remove(); }
+  b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy tab", 1200);
+};
+$("sharps").addEventListener("change", () => renderTab(false));
+addEventListener("keydown", e => {
+  if (/SELECT|INPUT/.test(e.target.tagName)) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === "z"){ e.preventDefault(); $("tUndo").click(); }
+  else if ((e.key === "Delete" || e.key === "Backspace") && selId !== null){ e.preventDefault(); $("tDel").click(); }
+});
+renderTab(false);
+
+// ---- quiz mode
+function setQuiz(v){
+  quiz = v; document.documentElement.classList.toggle("quiz", v);
+  const b = $("quiz"); b.classList.toggle("on", v); b.setAttribute("aria-pressed", v);
+  draw(); renderTab(false);
+}
+$("quiz").onclick = () => setQuiz(!quiz);
+
+// ---- Guitar Pro 7/8 (.gp) loader + player
+let gp = null, gpTimer = 0, gpAC = null;
+async function unzipGpif(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let e = u8.length - 22;
+  while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error("not a Guitar Pro 7/8 file");
+  let p = dv.getUint32(e + 16, true);
+  for (let i = dv.getUint16(e + 10, true); i--;){
+    const m = dv.getUint16(p + 10, true), cs = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+    if (/score\.gpif$/.test(name)){
+      const ds = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true), data = u8.subarray(ds, ds + cs);
+      if (m === 0) return new TextDecoder().decode(data);
+      return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+    }
+    p += 46 + nl + xl + cl;
+  }
+  throw new Error("no score inside file");
+}
+function parseGpif(xml){
+  const R = new DOMParser().parseFromString(xml, "text/xml").documentElement;
+  const kid = (p, t) => p && [...p.children].find(c => c.tagName === t);
+  const txt = (p, t) => { const k = kid(p, t); return k ? k.textContent.trim() : ""; };
+  const byId = t => { const m = {}, c = kid(R, t); if (c) for (const x of c.children) m[x.getAttribute("id")] = x; return m; };
+  const prop = (n, name) => { const ps = kid(n, "Properties"); return ps && [...ps.children].find(q => q.getAttribute("name") === name); };
+  const bars = byId("Bars"), voices = byId("Voices"), beats = byId("Beats"), notes = byId("Notes"), rhy = byId("Rhythms");
+  const tracks = [...kid(R, "Tracks").children].map((t, i) => {
+    const tp = [...t.getElementsByTagName("Property")].find(q => q.getAttribute("name") === "Tuning"), pit = tp && txt(tp, "Pitches");
+    return pit ? {i, name:txt(t, "Name") || "Track " + (i + 1), tuning:pit.split(/\s+/).map(Number)} : null;
+  }).filter(Boolean);
+  if (!tracks.length) throw new Error("no guitar or bass tracks");
+  const at = [...R.getElementsByTagName("Automation")].find(a => txt(a, "Type") === "Tempo");
+  const bpm = at ? parseFloat(txt(at, "Value")) || 120 : 120;
+  const VAL = {Whole:1, Half:.5, Quarter:.25, Eighth:.125, "16th":1/16, "32nd":1/32, "64th":1/64, "128th":1/128};
+  const mbs = [...kid(R, "MasterBars").children], events = {};
+  let acc = 0;
+  const starts = mbs.map(mb => { const a = acc, [nu, de] = txt(mb, "Time").split("/").map(Number); acc += nu / de; return a; });
+  tracks.forEach((tr, ti) => {
+    const ev = []; let m0 = 0;
+    mbs.forEach((mb, bi) => {
+      const [nu, de] = txt(mb, "Time").split("/").map(Number), bar = bars[txt(mb, "Bars").split(/\s+/)[tr.i]];
+      for (const vid of (bar ? txt(bar, "Voices").split(/\s+/) : [])){
+        if (vid === "-1" || !voices[vid]) continue;
+        let t = m0;
+        for (const bid of txt(voices[vid], "Beats").split(/\s+/)){
+          const b = beats[bid]; if (!b) continue;
+          const r = rhy[kid(b, "Rhythm").getAttribute("ref")];
+          let dur = VAL[txt(r, "NoteValue")] || .25;
+          const dot = kid(r, "AugmentationDot"); if (dot) dur *= [1, 1.5, 1.75][+dot.getAttribute("count")] || 1.5;
+          const tu = kid(r, "PrimaryTuplet"); if (tu) dur *= tu.getAttribute("den") / tu.getAttribute("num");
+          const ns = txt(b, "Notes");
+          if (ns) for (const nid of ns.split(/\s+/)){
+            const n = notes[nid], tie = kid(n, "Tie"), sp = prop(n, "String"), fp = prop(n, "Fret");
+            if (!n || !sp || !fp || prop(n, "Muted") || (tie && tie.getAttribute("destination") === "true")) continue;
+            const st = +txt(sp, "String"), f = +txt(fp, "Fret");
+            if (st < tr.tuning.length) ev.push({t, dur, s:st, f, n:tr.tuning[st] + f, bar:bi});
+          }
+          t += dur;
+        }
+      }
+      m0 += nu / de;
+    });
+    events[ti] = ev.sort((a, b) => a.t - b.t);
+  });
+  return {tracks, events, bpm, starts, len:acc, title:txt(kid(R, "Score"), "Title"), cur:0};
+}
+function gpCols(i){
+  const out = []; let last = null;
+  gp.events[i].forEach(e => {
+    if (!last || e.t - last.t > 1e-6){ last = {t:e.t, bar:e.bar, notes:[]}; out.push(last); }
+    last.notes.push({id:nid++, s:e.s, f:e.f, n:e.n, v:90});
+  });
+  return out;
+}
+function gpSetTrack(i){
+  gp.cur = i;
+  const tr = gp.tracks[i], key = "From file: " + tr.name;
+  if (!TUNINGS[key]){ TUNINGS[key] = tr.tuning; const o = document.createElement("option"); o.textContent = key; $("tuning").appendChild(o); }
+  $("tuning").value = key; tuning = tr.tuning; pins.clear();
+  if (!liveTab) liveTab = tab;
+  tab = gpCols(i); undoStack = []; selId = null; recOn = false; gpCol = 0; gpPos = 0;
+  $("gpSeek").max = Math.round(gp.len * 1000); $("gpSeek").disabled = $("gpLive").disabled = false;
+  draw(); renderTab(false); $("tabScroll").scrollLeft = 0; gpShow(0);
+}
+let gpPos = 0, gpWas = false;
+function headTo(c, scroll){
+  const h = $("tabHead"); if (!h) return;
+  const x = 28 + c * CWID - CWID / 2 + 2;
+  h.setAttribute("x", x);
+  if (scroll){ const sc = $("tabScroll"); sc.scrollLeft = Math.max(0, x - sc.clientWidth * 0.3); }
+}
+function gpShow(pos){
+  gpPos = pos;
+  $("gpSeek").value = Math.round(pos * 1000);
+  let bi = 0; while (bi + 1 < gp.starts.length && gp.starts[bi + 1] <= pos + 1e-6) bi++;
+  const sec = pos * 240 / gp.bpm / +$("gpSpeed").value;
+  $("gpTime").textContent = "Bar " + (bi + 1) + " · " + Math.floor(sec / 60) + ":" + String(Math.floor(sec % 60)).padStart(2, "0");
+  if (liveTab){
+    let lo = 0, hi = tab.length - 1, c = 0;
+    while (lo <= hi){ const m = (lo + hi) >> 1; if (tab[m].t <= pos + 1e-6){ c = m; lo = m + 1; } else hi = m - 1; }
+    if (c !== gpCol){ gpCol = c; headTo(c, true); }
+  }
+}
+function gpSeekTo(pos){ const was = !!gpTimer; if (was) gpStop(); gpShow(pos); if (was) gpPlay(); }
+function gpSound(n, dur){
+  const c = gpAC, t = c.currentTime, f = 440 * Math.pow(2, (n - 69) / 12);
+  const o = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
+  o.type = "sawtooth"; o.frequency.value = f;
+  lp.type = "lowpass"; lp.frequency.setValueAtTime(Math.min(9000, f * 10), t); lp.frequency.exponentialRampToValueAtTime(Math.max(300, f * 1.5), t + .5);
+  g.gain.setValueAtTime(.13, t); g.gain.setTargetAtTime(0, t, .4); g.gain.setTargetAtTime(0, t + dur, .06);
+  o.connect(lp); lp.connect(g); g.connect(c.destination);
+  o.start(t); o.stop(t + dur + .6);
+}
+function gpStop(){
+  clearInterval(gpTimer); gpTimer = 0; if (gpAudio) gpAudio.pause();
+  $("gpPlay").textContent = "▶ Play";
+  releaseAll(); active.clear(); held.clear(); draw();
+}
+function gpPlay(){
+  if (gpTimer) return gpStop();
+  const ev = gp && gp.events[gp.cur]; if (!ev || !ev.length) return;
+  gpAC = gpAC || new (window.AudioContext || window.webkitAudioContext)(); gpAC.resume();
+  if (gpPos >= gp.len - .01) gpShow(0);
+  const kb = 240 / gp.bpm, sp = +$("gpSpeed").value, t0 = performance.now() - gpPos * kb / sp * 1000;
+  let i = ev.findIndex(e => e.t >= gpPos - 1e-6); if (i < 0) i = ev.length;
+  if (gpAudio){ gpAudio.playbackRate = sp; gpAudio.currentTime = Math.max(0, gpPos * kb + gpOff); gpAudio.play().catch(() => {}); }
+  $("gpPlay").textContent = "■ Pause";
+  gpTimer = setInterval(() => {
+    const song = gpAudio ? gpAudio.currentTime - gpOff : (performance.now() - t0) / 1000 * sp, pos = song / kb;
+    while (i < ev.length && ev[i].t <= pos){
+      const e = ev[i++], dur = Math.max(.15, e.dur * kb / sp);
+      if (!gpAudio || $("gpSynth").checked) gpSound(e.n, dur);
+      noteOn(e.n, 90, e.s);
+      setTimeout(() => { if (gpTimer) noteOff(e.n, e.s); }, dur * 900);
+    }
+    gpShow(Math.max(0, pos));
+    if (song >= gp.len * kb + (gpAudio ? 1.5 : 0) || (gpAudio && gpAudio.ended)){ gpStop(); gpShow(0); }
+  }, 15);
+}
+$("gpSeek").addEventListener("input", e => { if (gpTimer){ gpWas = true; gpStop(); } gpShow(e.target.value / 1000); });
+$("gpSeek").addEventListener("change", () => { if (gpWas){ gpWas = false; gpPlay(); } });
+$("gpSpeed").addEventListener("change", () => { if (!gp) return; if (gpTimer){ gpStop(); gpPlay(); } else gpShow(gpPos); });
+$("gpLive").onclick = () => { if (!liveTab) return; if (gpTimer) gpStop(); tab = liveTab; liveTab = null; recOn = true; selId = null; renderTab(false); };
+$("gpLoad").onclick = () => $("gpFile").click();
+async function gpOpen(buf, label, audioUrl, defOff){
+  if (gpTimer) gpStop();
+  try{
+    gp = parseGpif(await unzipGpif(buf));
+    if (gpAudio){ gpAudio.pause(); gpAudio = null; }
+    if (audioUrl){ gpAudio = new Audio(audioUrl); gpAudio.preload = "auto"; gpAudio.preservesPitch = true; }
+    gpKey = "off:" + label;
+    let sv = null; try{ sv = localStorage.getItem(gpKey); }catch(_){}
+    gpOff = sv !== null ? +sv : (defOff || 0); $("gpOff").value = gpOff;
+    $("gpTrack").innerHTML = gp.tracks.map((t, i) => `<option value="${i}">${t.name.replace(/</g, "&lt;")}</option>`).join("");
+    $("gpTrack").disabled = $("gpPlay").disabled = false;
+    $("gpInfo").textContent = (gp.title || label) + " · " + Math.round(gp.bpm) + " BPM" + (gpAudio ? " · audio" : "");
+    gpSetTrack(0);
+  }catch(err){
+    $("gpInfo").textContent = "Couldn’t read that file (" + err.message + "). Guitar Pro 7/8 .gp files only.";
+  }
+}
+$("gpFile").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (f) gpOpen(await f.arrayBuffer(), f.name, null, 0); };
+$("gpOff").oninput = e => { gpOff = +e.target.value || 0; try{ localStorage.setItem(gpKey, gpOff); }catch(_){} };
+
+// ---- library
+const U = p => p.split("/").map(encodeURIComponent).join("/");
+function libRender(){
+  const q = $("libQ").value.toLowerCase(), L = $("libList"); L.innerHTML = "";
+  lib.filter(x => x.name.toLowerCase().includes(q)).forEach(x => {
+    const b = document.createElement("button"); b.className = "libItem"; b.textContent = x.name + (x.audio ? "" : "  (tab only)");
+    b.onclick = () => libPick(x); L.appendChild(b);
+  });
+  if (!L.children.length) L.textContent = lib.length ? "No matches." : "No library yet. Open a local folder, or put library.json next to this page.";
+}
+async function libPick(x){
+  $("libDlg").close(); $("gpInfo").textContent = "Loading…";
+  try{ const r = await x.load(); await gpOpen(r.buf, x.name, r.audio, x.offset); }
+  catch(err){ $("gpInfo").textContent = "Couldn’t load " + x.name + " (" + err.message + ")"; }
+}
+$("libBtn").onclick = () => { libRender(); $("libDlg").showModal(); };
+$("libX").onclick = () => $("libDlg").close();
+$("libQ").oninput = libRender;
+if (!window.showDirectoryPicker) $("libDir").hidden = true;
+$("libDir").onclick = async () => {
+  try{
+    const dir = await showDirectoryPicker(), gps = {}, aud = {};
+    for await (const [n, h] of dir.entries()){
+      const m = h.kind === "file" && n.match(/^(.*)\.(gp|mp3|m4a|wav|ogg|aac|flac)$/i);
+      if (m) (m[2].toLowerCase() === "gp" ? gps : aud)[m[1]] = {n, h};
+    }
+    lib = Object.keys(gps).sort().map(k => ({name:k, gp:gps[k].n, audio:aud[k] && aud[k].n,
+      load: async () => ({buf:await (await gps[k].h.getFile()).arrayBuffer(), audio:aud[k] ? URL.createObjectURL(await aud[k].h.getFile()) : null})}));
+    $("libSave").hidden = false; libRender();
+  }catch(_){}
+};
+$("libSave").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(lib.map(({name, gp, audio}) => ({name, gp, audio})), null, 1)], {type:"application/json"}));
+  a.download = "library.json"; a.click();
+};
+fetch("library.json").then(r => r.ok ? r.json() : Promise.reject()).then(j => {
+  lib = j.map(x => ({...x, load: async () => {
+    const r = await fetch(U(x.gp)); if (!r.ok) throw new Error("tab not found");
+    return {buf:await r.arrayBuffer(), audio:x.audio ? U(x.audio) : null};
+  }}));
+  libRender(); $("libDlg").showModal();
+}).catch(() => {});
+$("gpTrack").onchange = e => { if (gpTimer) gpStop(); gpSetTrack(+e.target.value); };
+$("gpPlay").onclick = gpPlay;
+
+function toggleTop(){ document.documentElement.classList.toggle("showtop"); }
+function fit(){
+  const st = $("stage"), w = Math.max(st.clientWidth, 700), h = st.clientHeight;
+  VH = Math.round(Math.min(900, Math.max(300, CW * h / w)));
+  svg.setAttribute("viewBox", `0 0 ${CW} ${VH}`);
+  TOP = 40; BOTTOM = VH - 80;
+  draw();
+}
+new ResizeObserver(fit).observe($("stage"));
+fit();
+initMIDI();
+</script>
+</body>
+</html>
