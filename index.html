@@ -88,13 +88,22 @@ html.student .pinbar{display:none}
 #transport{padding:10px 16px 4px;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box}
 #tpRow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
 #tpBtns,#tpRight{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.tbtn{width:56px;height:56px;padding:0;border-radius:50%;font-size:22px;line-height:1;color:#fff;cursor:pointer;border:1px solid rgba(255,255,255,.28);background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.3),rgba(255,255,255,.04) 62%),#1b2330;box-shadow:0 5px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .08s,box-shadow .2s}
+.tbtn{min-width:104px;height:54px;padding:0 18px;border-radius:10px;font-size:17px;font-weight:700;line-height:1;color:#fff;cursor:pointer;border:1px solid rgba(255,255,255,.28);background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.3),rgba(255,255,255,.04) 62%),#1b2330;box-shadow:0 5px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .08s,box-shadow .2s}
 .tbtn:hover:not(:disabled){box-shadow:0 0 18px var(--accent),inset 0 1px 0 rgba(255,255,255,.35)}
 .tbtn:active:not(:disabled){transform:scale(.92)}
 .tbtn:disabled{opacity:.35;cursor:default}
-#gpPlay{width:76px;height:76px;font-size:32px;border:none;color:#04121a;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.65),transparent 55%),linear-gradient(135deg,var(--accent),var(--hit))}
-#gpTime{font:700 15px system-ui;min-width:120px}
-#bmBtn,#modeBtn{border-radius:999px;padding:10px 16px;font-weight:600}
+#gpPlay{min-width:150px;height:60px;font-size:20px;border:none;color:#04121a;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.65),transparent 55%),linear-gradient(135deg,var(--accent),var(--hit))}
+#gpTime{font:700 15px system-ui}
+#bmBtn,#modeBtn,#pickBtn{border-radius:10px;padding:10px 16px;font-weight:600}
+#bmBtn{width:150px}#modeBtn{width:140px;margin-left:auto}
+#gpTime{width:130px;white-space:nowrap}
+#gpTitle{display:inline-block;width:300px;font:800 19px system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gpInfo{display:inline-block;width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#transport button,#transport select,#transport label{flex:none}
+#pickBtn.on,#bmBtn.on{box-shadow:inset 0 0 0 2px var(--hit)}
+html{overflow-anchor:none;scrollbar-gutter:stable}
+#tlSecs{position:absolute;inset:0;pointer-events:none}
+.sec{position:absolute;top:0;height:20px;line-height:20px;padding:0 7px;box-sizing:border-box;font:700 11px system-ui;color:#fff;background:rgba(255,255,255,.14);border-left:2px solid var(--hit);border-radius:0 6px 0 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #tl{position:relative;height:64px;margin:30px 0 10px;border-radius:14px;cursor:pointer;touch-action:none;background:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 2px 8px rgba(0,0,0,.35)}
 #tlFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:13px 0 0 13px;background:linear-gradient(90deg,var(--accent),var(--hit),var(--accent));background-size:200% 100%;opacity:.5}
 #tl.playing #tlFill{animation:tlflow 2s linear infinite}
@@ -146,7 +155,7 @@ html.student .pinbar{display:none}
 <div class="pinbar" id="pinbar">
   <button id="sticky" aria-pressed="false" title="Keep played notes lit on the neck (S)">📌 Sticky</button>
   <button id="unpin" title="Remove all pinned notes">Clear pins</button>
-  <label>Labels <select id="labels"><option value="name">Note names</option><option value="fret">Fret numbers</option><option value="int">Intervals</option></select></label>
+  <label>Labels <select id="labels"><option value="name">Note names</option><option value="fret">Fret numbers</option><option value="int">Intervals</option><option value="pick">Picking (D/U)</option></select></label>
   <label id="rootWrap" style="display:none">Root <select id="rootsel"></select></label>
   <span class="sep"></span>
   <span id="midiLight" class="grp"><i id="mlDot"></i> <span id="mlTxt">MIDI: not started</span></span>
@@ -160,7 +169,7 @@ html.student .pinbar{display:none}
   
   <span class="grp keep" id="gpTime"></span>
   <button id="gpLive" disabled title="Go back to the tab you recorded by playing">↩ Live tab</button>
-  <label class="keep">Speed <select id="gpSpeed"><option value="0.5">50%</option><option value="0.6">60%</option><option value="0.75">75%</option><option value="0.9">90%</option><option value="1" selected>100%</option></select></label>
+  <label class="keep">Speed <select id="gpSpeed"><option value="0.75">75%</option><option value="0.9">90%</option><option value="1" selected>100%</option></select></label>
   <label>Trail <select id="trailSel"><option value="0">Off</option><option value="800" selected>Short</option><option value="1500">Medium</option><option value="3000">Long</option></select></label>
   <label>Sync <input type="number" id="gpOff" step="0.01" value="0" style="width:72px" onkeydown="event.stopPropagation()" title="Seconds. Positive = audio starts later than the tab"> s</label>
   <label><input type="checkbox" id="gpSynth"> Synth</label>
@@ -231,7 +240,7 @@ let tuning = TUNINGS["Standard (E A D G B E)"];
 const active = new Map();
 const held = new Set();
 let sustain = false;
-let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [], trail = [], trailMs = 800, gpBM = null, gpCI = 0, midiTried = false, midiN = 0, midiLast = 0, midiNote = "", midiNoteT = 0;
+let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [], trail = [], trailMs = 800, curPick = "", gpBM = null, gpCI = 0, midiTried = false, midiN = 0, midiLast = 0, midiNote = "", midiNoteT = 0;
 let ADV0 = false; try{ ADV0 = localStorage.getItem("fbMode") === "adv"; }catch(_){}
 document.documentElement.classList.toggle("student", !ADV0);
 
@@ -375,7 +384,7 @@ function draw(){
       }
       el("circle", {cx, cy, r, fill: quiz ? "url(#gQuiz)" : "url(#gHit)", class: quiz ? "qpulse" : "", stroke:"var(--ring)", "stroke-width":2, "pointer-events":"none"});
       const t = el("text", {x:cx, y:cy + fs * 0.36, "text-anchor":"middle", fill:"var(--hit-ink)", "font-size":fs, "font-weight":700, "pointer-events":"none"});
-      if (quiz) t.remove(); else t.textContent = labelFor(note, f);
+      if (quiz) t.remove(); else t.textContent = labelFor(note, f, e);
     }
   }
   // string names
@@ -458,8 +467,9 @@ function rootPc(){
   for (const p of pins.values()) if (!best || p.order < best.order) best = p;
   return best ? best.n % 12 : null;
 }
-function labelFor(n, f){
+function labelFor(n, f, e){
   const m = $("labels").value;
+  if (m === "pick" && e && e.pick) return e.pick;
   if (m === "fret") return f;
   if (m === "int"){ const r = rootPc(); if (r !== null) return INTERVALS[((n % 12) - r + 12) % 12]; }
   return noteName(n);
@@ -489,7 +499,7 @@ function applyBend(s, semis){
   for (const e of active.values()) if (s === null || e.s === s){ e.bend = semis; hit = true; }
   if (hit) scheduleDraw();
 }
-function noteOn(n, v, s = null, toggle = false){ const k = keyOf(n, s); const e = {n, v, s, bend:0}; active.set(k, e); held.delete(k); if (sticky) pinPositions(e, toggle); entryPositions(e).forEach(p => pluck(p.s, p.f, v)); capture(e); draw(); }
+function noteOn(n, v, s = null, toggle = false){ const k = keyOf(n, s); const e = {n, v, s, bend:0, pick:curPick}; active.set(k, e); held.delete(k); if (sticky) pinPositions(e, toggle); entryPositions(e).forEach(p => pluck(p.s, p.f, v)); capture(e); draw(); }
 function trailAdd(e){ const t = performance.now(); entryPositions(e).forEach(p => trail.push({s:p.s, f:p.f, t})); }
 function noteOff(n, s = null){
   const k = keyOf(n, s);
@@ -853,6 +863,7 @@ function parseGpif(xml){
   const mbs = [...kid(R, "MasterBars").children], events = {};
   let acc = 0;
   const meters = [], starts = mbs.map(mb => { const a = acc, [nu, de] = txt(mb, "Time").split("/").map(Number); meters.push([nu, de]); acc += nu / de; return a; });
+  const secs = mbs.map((mb, i) => { const sc = kid(mb, "Section"), t = sc && (txt(sc, "Text") || txt(sc, "Letter")); return t ? {bar:i, name:t} : null; }).filter(Boolean);
   tracks.forEach((tr, ti) => {
     const ev = []; let m0 = 0;
     mbs.forEach((mb, bi) => {
@@ -880,7 +891,7 @@ function parseGpif(xml){
     });
     events[ti] = ev.sort((a, b) => a.t - b.t);
   });
-  return {tracks, events, bpm, starts, meters, len:acc, title:txt(kid(R, "Score"), "Title"), cur:0};
+  return {tracks, events, bpm, starts, meters, secs, len:acc, title:txt(kid(R, "Score"), "Title"), cur:0};
 }
 function gpCols(i){
   const out = []; let last = null;
@@ -896,6 +907,8 @@ function gpSetTrack(i){
   if (!TUNINGS[key]){ TUNINGS[key] = tr.tuning; const o = document.createElement("option"); o.textContent = key; $("tuning").appendChild(o); }
   $("tuning").value = key; tuning = tr.tuning; pins.clear();
   if (!liveTab) liveTab = tab;
+  { const sweep = /sweep/i.test(gp.name + " " + gp.title); let last = -1, k = -1;
+    gp.events[i].forEach(e => { if (e.t - last > 1e-6){ k++; last = e.t; } e.pick = sweep ? "" : (k % 2 ? "U" : "D"); }); }
   tab = gpCols(i); undoStack = []; selId = null; recOn = false; gpCol = 0; gpPos = 0;
   $("gpLive").disabled = false; tlBuild();
   draw(); renderTab(false); $("tabScroll").scrollLeft = 0; gpShow(0);
@@ -932,7 +945,7 @@ function gpSound(n, dur){
 }
 function gpStop(){
   clearInterval(gpTimer); gpTimer = 0; if (gpAudio) gpAudio.pause();
-  $("gpPlay").textContent = "▶"; $("tl").classList.remove("playing"); clearTimeout(gpCI); gpCI = 0;
+  $("gpPlay").textContent = "▶ Play"; $("tl").classList.remove("playing"); clearTimeout(gpCI); gpCI = 0;
   releaseAll(); active.clear(); held.clear(); draw();
 }
 function gpHome(){ return gpBM === null ? 0 : gpBM; }
@@ -947,10 +960,10 @@ function gpPlay(){
   if (!gp || !gp.events[gp.cur].length) return;
   gpAC = gpAC || new (window.AudioContext || window.webkitAudioContext)(); gpAC.resume();
   if (gpPos >= gp.len - .01) gpShow(gpHome());
-  if (gpBM !== null && Math.abs(gpPos - gpBM) < 1e-6){   // starting from the bookmark: count in one bar
+  if (gpBM !== null && +$("ciSel").value && Math.abs(gpPos - gpBM) < 1e-6){   // starting from the bookmark: count in one bar
     const m = gp.meters[gpBarAt(gpPos)], sp = +$("gpSpeed").value, ms = 60000 / gp.bpm * (4 / m[1]) / sp; let n = 0;
-    $("gpPlay").textContent = "⏸";
-    const tick = () => { if (n < m[0]){ gpClick(n === 0); $("gpTime").textContent = "Count-in " + (n + 1); n++; gpCI = setTimeout(tick, ms); } else { gpCI = 0; gpRun(); } };
+    $("gpPlay").textContent = "⏸ Pause";
+    const tick = () => { if (n < +$("ciSel").value){ gpClick(n === 0); $("gpTime").textContent = "Count-in " + (n + 1); n++; gpCI = setTimeout(tick, ms); } else { gpCI = 0; gpRun(); } };
     return tick();
   }
   gpRun();
@@ -959,13 +972,13 @@ function gpRun(){
   const ev = gp.events[gp.cur], kb = 240 / gp.bpm, sp = +$("gpSpeed").value, t0 = performance.now() - gpPos * kb / sp * 1000;
   let i = ev.findIndex(e => e.t >= gpPos - 1e-6); if (i < 0) i = ev.length;
   if (gpAudio){ gpAudio.playbackRate = sp; gpAudio.currentTime = Math.max(0, gpPos * kb + gpOff); gpAudio.play().catch(() => {}); }
-  $("gpPlay").textContent = "⏸"; $("tl").classList.add("playing");
+  $("gpPlay").textContent = "⏸ Pause"; $("tl").classList.add("playing");
   gpTimer = setInterval(() => {
     const song = gpAudio ? gpAudio.currentTime - gpOff : (performance.now() - t0) / 1000 * sp, pos = song / kb;
     while (i < ev.length && ev[i].t <= pos){
       const e = ev[i++], dur = Math.max(.15, e.dur * kb / sp);
       if (!gpAudio || $("gpSynth").checked) gpSound(e.n, dur);
-      noteOn(e.n, 90, e.s);
+      curPick = e.pick || ""; noteOn(e.n, 90, e.s); curPick = "";
       setTimeout(() => { if (gpTimer) noteOff(e.n, e.s); }, dur * 900);
     }
     gpShow(Math.max(0, pos));
@@ -979,7 +992,7 @@ $("gpLoad").onclick = () => $("gpFile").click();
 async function gpOpen(buf, label, audioUrl, defOff){
   if (gpTimer) gpStop();
   try{
-    gp = parseGpif(await unzipGpif(buf));
+    gp = parseGpif(await unzipGpif(buf)); gp.name = label;
     if (gpAudio){ gpAudio.pause(); gpAudio = null; }
     if (audioUrl){ gpAudio = new Audio(audioUrl); gpAudio.preload = "auto"; gpAudio.preservesPitch = true; }
     gpKey = "off:" + label;
@@ -988,7 +1001,7 @@ async function gpOpen(buf, label, audioUrl, defOff){
     $("gpTrack").innerHTML = gp.tracks.map((t, i) => `<option value="${i}">${t.name.replace(/</g, "&lt;")}</option>`).join("");
     $("gpTrack").disabled = $("gpPlay").disabled = $("gpStart").disabled = false;
     gpBM = null; bmLabel(); $("gpStopB").disabled = $("bmBtn").disabled = false;
-    $("gpInfo").textContent = (gp.title || label) + " · " + Math.round(gp.bpm) + " BPM" + (gpAudio ? " · audio" : "");
+    $("gpInfo").textContent = Math.round(gp.bpm) + " BPM"; $("gpTitle").textContent = label;
     gpSetTrack(0);
   }catch(err){
     $("gpInfo").textContent = "Couldn’t read that file (" + err.message + "). Guitar Pro 7/8 .gp files only.";
@@ -1045,21 +1058,34 @@ $("gpPlay").onclick = gpPlay;
 
 // ---- transport, timeline, easy/advanced, space bar, MIDI light
 const tpEl = document.createElement("div"); tpEl.id = "transport";
-tpEl.innerHTML = '<div id="tpRow"><span id="tpBtns"></span><span id="tpRight"></span></div><div id="tl"><div id="tlFill"></div><div id="tlTicks"></div><div id="tlBM" hidden>🔖</div><div id="tlHead"><span id="tlBub">Bar 1</span></div></div>';
+tpEl.innerHTML = '<div id="tpRow"><span id="tpBtns"></span><span id="tpRight"></span></div><div id="tl"><div id="tlFill"></div><div id="tlSecs"></div><div id="tlTicks"></div><div id="tlBM" hidden>🔖</div><div id="tlHead"><span id="tlBub">Bar 1</span></div></div>';
 $("pinbar").before(tpEl);
-const stopB = document.createElement("button"); stopB.id = "gpStopB"; stopB.textContent = "■"; stopB.title = "Stop (goes back to the bookmark)"; stopB.disabled = true;
+const stopB = document.createElement("button"); stopB.id = "gpStopB"; stopB.textContent = "■ Stop"; stopB.title = "Stop (goes back to the bookmark)"; stopB.disabled = true;
 const bmB = document.createElement("button"); bmB.id = "bmBtn"; bmB.disabled = true; bmB.title = "Mark the current bar. Stop returns here and the next play counts in.";
 const modeB = document.createElement("button"); modeB.id = "modeBtn"; modeB.title = "Switch between Easy and Advanced view";
+const ciL = document.createElement("label"); ciL.innerHTML = 'Count-in <select id="ciSel"><option value="4">4 beats</option><option value="2">2 beats</option><option value="0">Off</option></select>';
+const pickB = document.createElement("button"); pickB.id = "pickBtn"; pickB.textContent = "D/U"; pickB.title = "Show pick direction (down/up) on the dots";
+const titleS = document.createElement("span"); titleS.id = "gpTitle";
 $("tpBtns").append($("gpStart"), stopB, $("gpPlay"), $("gpTime"));
-$("tpRight").append(bmB, $("gpSpeed").parentElement, $("libBtn"), modeB, $("gpInfo"));
+$("tpRight").append(bmB, ciL, $("gpSpeed").parentElement, pickB, $("libBtn"), titleS, $("gpInfo"), modeB);
+$("gpStart").textContent = "⏮ Start";
+try{ $("ciSel").value = localStorage.getItem("fbCI") || "4"; }catch(_){}
+$("ciSel").onchange = e => { try{ localStorage.setItem("fbCI", e.target.value); }catch(_){} };
+let prevLab = "name";
+const pickSync = () => pickB.classList.toggle("on", $("labels").value === "pick");
+pickB.onclick = () => { const l = $("labels"); if (l.value === "pick") l.value = prevLab; else { prevLab = l.value; l.value = "pick"; } l.dispatchEvent(new Event("change")); pickSync(); };
+$("labels").addEventListener("change", pickSync); pickSync();
+tpEl.addEventListener("mousedown", e => { if (e.target.closest("button")) e.preventDefault(); });
 [$("gpStart"), stopB, $("gpPlay")].forEach(b => b.classList.add("tbtn"));
-$("gpPlay").textContent = "▶";
+$("gpPlay").textContent = "▶ Play";
 function bmLabel(){ bmB.textContent = gpBM === null || !gp ? "🔖 Bookmark" : "🔖 Bar " + (gpBarAt(gpBM) + 1); bmB.classList.toggle("on", gpBM !== null); tlMark(); }
 function tlMark(){ const b = $("tlBM"); b.hidden = gpBM === null || !gp; if (!b.hidden) b.style.left = gpBM / gp.len * 100 + "%"; }
 function tlBuild(){
   if (!gp) return;
   const n = gp.starts.length, step = Math.max(1, Math.ceil(n / Math.max(4, Math.floor($("tl").clientWidth / 38))));
   $("tlTicks").innerHTML = gp.starts.map((st, i) => `<div class="tk${i % step ? "" : " lb"}" style="left:${st / gp.len * 100}%">${i % step ? "" : "<b>" + (i + 1) + "</b>"}</div>`).join("");
+  $("tlSecs").innerHTML = gp.secs.map((sc, k) => { const x = gp.starts[sc.bar] / gp.len * 100, nx = (gp.secs[k + 1] ? gp.starts[gp.secs[k + 1].bar] : gp.len) / gp.len * 100;
+    return `<div class="sec" style="left:${x}%;width:${nx - x}%">${sc.name.replace(/</g, "&lt;")}</div>`; }).join("");
   tlMark();
 }
 addEventListener("resize", tlBuild);
