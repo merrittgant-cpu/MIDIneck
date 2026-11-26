@@ -105,6 +105,7 @@ html{overflow-anchor:none;scrollbar-gutter:stable}
 #tlSecs{position:absolute;inset:0;pointer-events:none}
 #topRow{display:flex;align-items:center;gap:12px;padding:0 0 8px}
 #topRow #libBtn{flex:none}
+#shareBtn{flex:none;padding:10px 12px;border-radius:10px}
 #transport #tpBtns,#transport #tpRight{gap:10px}
 #rotateHint{display:none;text-align:center;font:600 13px system-ui;padding:6px;background:rgba(255,255,255,.1);border-radius:8px;margin-bottom:6px}
 html.clean #transport,html.clean #topRow{display:none}
@@ -258,7 +259,7 @@ const active = new Map();
 const held = new Set();
 let sustain = false;
 let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [], trail = [], trailMs = 800, curPick = "", gpBM = null, gpCI = 0, midiTried = false, midiN = 0, midiLast = 0, midiNote = "", midiNoteT = 0;
-let ADV0 = false; try{ ADV0 = localStorage.getItem("fbMode") === "adv"; }catch(_){}
+const ADV0 = false;
 document.documentElement.classList.toggle("student", !ADV0);
 
 // Geometry (canvas is 1500 wide; height follows the window)
@@ -1038,10 +1039,18 @@ function libRender(){
   if (!L.children.length) L.textContent = lib.length ? "No matches." : "No library yet. Open a local folder, or put library.json next to this page.";
 }
 async function libPick(x){
+  try{ history.replaceState(null, "", "#ex=" + encodeURIComponent(x.name)); }catch(_){}
   $("libDlg").close(); $("gpInfo").textContent = "Loading…";
   try{ const r = await x.load(); await gpOpen(r.buf, x.name, r.audio, x.offset); }
   catch(err){ $("gpInfo").textContent = "Couldn’t load " + x.name + " (" + err.message + ")"; }
 }
+function libFromHash(){
+  const m = location.hash.match(/ex=([^&]*)/); if (!m) return false;
+  let nm; try{ nm = decodeURIComponent(m[1]).toLowerCase(); }catch(_){ return false; }
+  const x = lib.find(q => q.name.toLowerCase() === nm); if (!x) return false;
+  libPick(x); return true;
+}
+addEventListener("hashchange", libFromHash);
 $("libBtn").onclick = () => { libRender(); $("libDlg").showModal(); };
 $("libX").onclick = () => $("libDlg").close();
 $("libQ").oninput = libRender;
@@ -1068,7 +1077,7 @@ fetch("library.json").then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     const r = await fetch(U(x.gp)); if (!r.ok) throw new Error("tab not found");
     return {buf:await r.arrayBuffer(), audio:x.audio ? U(x.audio) : null};
   }}));
-  libRender(); $("libDlg").showModal();
+  libRender(); if (!libFromHash()) $("libDlg").showModal();
 }).catch(() => {});
 $("gpTrack").onchange = e => { if (gpTimer) gpStop(); gpSetTrack(+e.target.value); };
 $("gpPlay").onclick = gpPlay;
@@ -1086,7 +1095,14 @@ const titleS = document.createElement("span"); titleS.id = "gpTitle";
 $("tpBtns").append($("gpStart"), stopB, $("gpPlay"), $("gpTime"));
 $("tpRight").append(bmB, ciL, $("gpSpeed").parentElement, pickB);
 const topRow = document.createElement("div"); topRow.id = "topRow";
-topRow.append($("libBtn"), titleS, $("gpInfo"), modeB);
+const shareB = document.createElement("button"); shareB.id = "shareBtn"; shareB.textContent = "🔗"; shareB.title = "Copy a link to this exercise";
+shareB.onclick = () => {
+  if (!gp || !lib.some(q => q.name === gp.name)) return;
+  const url = location.href.split("#")[0] + "#ex=" + encodeURIComponent(gp.name), old = $("gpInfo").textContent;
+  const done = () => { $("gpInfo").textContent = "Link copied"; setTimeout(() => { $("gpInfo").textContent = old; }, 1800); };
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => prompt("Copy this link:", url)); else prompt("Copy this link:", url);
+};
+topRow.append($("libBtn"), titleS, $("gpInfo"), shareB, modeB);
 const hint = document.createElement("div"); hint.id = "rotateHint"; hint.textContent = "↻ Turn your phone sideways for the best view";
 document.body.prepend(topRow); document.body.prepend(hint);
 $("gpStart").textContent = "⏮ Start";
@@ -1095,6 +1111,7 @@ $("ciSel").onchange = e => { try{ localStorage.setItem("fbCI", e.target.value); 
 let prevLab = "name";
 const pickSync = () => pickB.classList.toggle("on", $("labels").value === "pick");
 pickB.onclick = () => { const l = $("labels"); if (l.value === "pick") l.value = prevLab; else { prevLab = l.value; l.value = "pick"; } l.dispatchEvent(new Event("change")); pickSync(); };
+if ($("labels").value === "pick") $("labels").value = "name";
 $("labels").addEventListener("change", pickSync); pickSync();
 tpEl.addEventListener("mousedown", e => { if (e.target.closest("button")) e.preventDefault(); });
 [$("gpStart"), stopB, $("gpPlay")].forEach(b => b.classList.add("tbtn"));
@@ -1129,7 +1146,6 @@ addEventListener("keyup", e => { if (e.code === "Space" && !typing(e)) e.prevent
 function setMode(adv){
   document.documentElement.classList.toggle("student", !adv);
   modeB.textContent = adv ? "🎓 Easy view" : "⚙️ Advanced";
-  try{ localStorage.setItem("fbMode", adv ? "adv" : "easy"); }catch(_){}
   if (adv && !midiTried){ midiTried = true; initMIDI(); }
   setTimeout(tlBuild, 0);
 }
