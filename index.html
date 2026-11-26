@@ -85,33 +85,50 @@ html.notab .tabpanel{display:none}
 html.quiz #now{visibility:hidden}
 html.student #topbar, html.student .tabpanel .tabbar, html.student #libDir, html.student #libSave{display:none !important}
 html.student .pinbar{display:none}
-#transport{padding:10px 16px 4px;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box}
+#transport{padding:6px 0 0;width:100%;box-sizing:border-box}
 #tpRow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
 #tpBtns,#tpRight{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.tbtn{min-width:104px;height:54px;padding:0 18px;border-radius:10px;font-size:17px;font-weight:700;line-height:1;color:#fff;cursor:pointer;border:1px solid rgba(255,255,255,.28);background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.3),rgba(255,255,255,.04) 62%),#1b2330;box-shadow:0 5px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .08s,box-shadow .2s}
+.tbtn{min-width:88px;height:44px;padding:0 14px;border-radius:10px;font-size:15px;font-weight:700;line-height:1;color:#fff;cursor:pointer;border:1px solid rgba(255,255,255,.28);background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.3),rgba(255,255,255,.04) 62%),#1b2330;box-shadow:0 5px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .08s,box-shadow .2s}
 .tbtn:hover:not(:disabled){box-shadow:0 0 18px var(--accent),inset 0 1px 0 rgba(255,255,255,.35)}
 .tbtn:active:not(:disabled){transform:scale(.92)}
 .tbtn:disabled{opacity:.35;cursor:default}
-#gpPlay{min-width:150px;height:60px;font-size:20px;border:none;color:#04121a;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.65),transparent 55%),linear-gradient(135deg,var(--accent),var(--hit))}
+#gpPlay{min-width:124px;height:48px;font-size:17px;border:none;color:#04121a;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.65),transparent 55%),linear-gradient(135deg,var(--accent),var(--hit))}
 #gpTime{font:700 15px system-ui}
 #bmBtn,#modeBtn,#pickBtn{border-radius:10px;padding:10px 16px;font-weight:600}
-#bmBtn{width:150px}#modeBtn{width:140px;margin-left:auto}
+#bmBtn{width:130px}#modeBtn{width:140px;margin-left:auto}
 #gpTime{width:130px;white-space:nowrap}
-#gpTitle{display:inline-block;width:300px;font:800 19px system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gpTitle{flex:1;min-width:0;font:800 19px system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #gpInfo{display:inline-block;width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #transport button,#transport select,#transport label{flex:none}
 #pickBtn.on,#bmBtn.on{box-shadow:inset 0 0 0 2px var(--hit)}
 html{overflow-anchor:none;scrollbar-gutter:stable}
 #tlSecs{position:absolute;inset:0;pointer-events:none}
-.sec{position:absolute;top:0;height:20px;line-height:20px;padding:0 7px;box-sizing:border-box;font:700 11px system-ui;color:#fff;background:rgba(255,255,255,.14);border-left:2px solid var(--hit);border-radius:0 6px 0 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-#tl{position:relative;height:64px;margin:30px 0 10px;border-radius:14px;cursor:pointer;touch-action:none;background:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 2px 8px rgba(0,0,0,.35)}
+#topRow{display:flex;align-items:center;gap:12px;padding:0 0 8px}
+#topRow #libBtn{flex:none}
+#transport #tpBtns,#transport #tpRight{gap:10px}
+#rotateHint{display:none;text-align:center;font:600 13px system-ui;padding:6px;background:rgba(255,255,255,.1);border-radius:8px;margin-bottom:6px}
+html.clean #transport,html.clean #topRow{display:none}
+@media (orientation:portrait) and (max-width:600px){#rotateHint{display:block}#gpTitle{font-size:16px}#tpRow{gap:8px}}
+@media (max-height:520px){
+  body{padding:6px 10px}
+  #topRow{padding-bottom:4px}
+  .tbtn{min-width:62px;height:36px;padding:0 8px;font-size:13px}
+  #gpPlay{min-width:92px;height:40px;font-size:15px}
+  #bmBtn,#modeBtn,#pickBtn{padding:6px 10px;font-size:13px}
+  #bmBtn{width:112px}#modeBtn{width:116px}
+  #gpTime{width:96px;font-size:13px}
+  #tl{height:40px;margin:22px 0 4px}
+  .tabpanel{margin-top:6px}
+}
+.sec{position:absolute;top:0;height:18px;line-height:18px;padding:0 7px;box-sizing:border-box;font:700 11px system-ui;color:#fff;background:rgba(255,255,255,.14);border-left:2px solid var(--hit);border-radius:0 6px 0 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#tl{position:relative;height:54px;margin:26px 0 6px;border-radius:14px;cursor:pointer;touch-action:none;background:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 2px 8px rgba(0,0,0,.35)}
 #tlFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:13px 0 0 13px;background:linear-gradient(90deg,var(--accent),var(--hit),var(--accent));background-size:200% 100%;opacity:.5}
 #tl.playing #tlFill{animation:tlflow 2s linear infinite}
 @keyframes tlflow{to{background-position:-200% 0}}
 #tlTicks{position:absolute;inset:0;pointer-events:none}
 .tk{position:absolute;bottom:0;width:1px;height:12px;background:rgba(255,255,255,.28)}
-.tk.lb{height:22px;background:rgba(255,255,255,.55)}
-.tk b{position:absolute;bottom:24px;left:3px;font:600 11px system-ui;color:rgba(255,255,255,.75)}
+.tk.lb{height:18px;background:rgba(255,255,255,.55)}
+.tk b{position:absolute;bottom:20px;left:3px;font:600 11px system-ui;color:rgba(255,255,255,.75)}
 #tlHead{position:absolute;top:-8px;bottom:-8px;left:0;width:4px;margin-left:-2px;border-radius:2px;background:#fff;pointer-events:none;box-shadow:0 0 12px var(--accent)}
 #tl.playing #tlHead{animation:tlpulse 1s ease-in-out infinite}
 @keyframes tlpulse{50%{box-shadow:0 0 22px var(--hit),0 0 6px #fff}}
@@ -1059,7 +1076,7 @@ $("gpPlay").onclick = gpPlay;
 // ---- transport, timeline, easy/advanced, space bar, MIDI light
 const tpEl = document.createElement("div"); tpEl.id = "transport";
 tpEl.innerHTML = '<div id="tpRow"><span id="tpBtns"></span><span id="tpRight"></span></div><div id="tl"><div id="tlFill"></div><div id="tlSecs"></div><div id="tlTicks"></div><div id="tlBM" hidden>🔖</div><div id="tlHead"><span id="tlBub">Bar 1</span></div></div>';
-$("pinbar").before(tpEl);
+$("tabpanel").after(tpEl);
 const stopB = document.createElement("button"); stopB.id = "gpStopB"; stopB.textContent = "■ Stop"; stopB.title = "Stop (goes back to the bookmark)"; stopB.disabled = true;
 const bmB = document.createElement("button"); bmB.id = "bmBtn"; bmB.disabled = true; bmB.title = "Mark the current bar. Stop returns here and the next play counts in.";
 const modeB = document.createElement("button"); modeB.id = "modeBtn"; modeB.title = "Switch between Easy and Advanced view";
@@ -1067,7 +1084,11 @@ const ciL = document.createElement("label"); ciL.innerHTML = 'Count-in <select i
 const pickB = document.createElement("button"); pickB.id = "pickBtn"; pickB.textContent = "D/U"; pickB.title = "Show pick direction (down/up) on the dots";
 const titleS = document.createElement("span"); titleS.id = "gpTitle";
 $("tpBtns").append($("gpStart"), stopB, $("gpPlay"), $("gpTime"));
-$("tpRight").append(bmB, ciL, $("gpSpeed").parentElement, pickB, $("libBtn"), titleS, $("gpInfo"), modeB);
+$("tpRight").append(bmB, ciL, $("gpSpeed").parentElement, pickB);
+const topRow = document.createElement("div"); topRow.id = "topRow";
+topRow.append($("libBtn"), titleS, $("gpInfo"), modeB);
+const hint = document.createElement("div"); hint.id = "rotateHint"; hint.textContent = "↻ Turn your phone sideways for the best view";
+document.body.prepend(topRow); document.body.prepend(hint);
 $("gpStart").textContent = "⏮ Start";
 try{ $("ciSel").value = localStorage.getItem("fbCI") || "4"; }catch(_){}
 $("ciSel").onchange = e => { try{ localStorage.setItem("fbCI", e.target.value); }catch(_){} };
