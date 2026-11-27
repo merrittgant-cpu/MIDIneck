@@ -689,8 +689,13 @@ function renderTab(scrollEnd){
     const t = el("text", {x:20, y:H / 2 + 4, fill:"var(--dim)", "font-size":13}, sv);
     t.textContent = recOn ? "Play a note and it will appear here." : "Recording is paused.";
   }
+  let lastChord = "";
   tab.forEach((col, c) => {
     const cx = 28 + c * CWID;
+    if (c && col.bar !== tab[c - 1].bar) lastChord = "";
+    if (col.chord && col.chord !== lastChord){ const ct = el("text", {x:cx - CWID / 2 + 3, y:25, fill:"var(--accent)", "font-size":13, "font-weight":700, "pointer-events":"none"}, sv); ct.textContent = col.chord; }
+    if (col.chord) lastChord = col.chord;
+    if (col.text){ const tt = el("text", {x:cx - CWID / 2 + 3, y:H - 10, fill:"var(--dim)", "font-size":11, "font-style":"italic", "pointer-events":"none"}, sv); tt.textContent = col.text; }
     if (liveTab){
       if (c && col.bar !== tab[c - 1].bar){
         el("line", {x1:cx - CWID / 2, x2:cx - CWID / 2, y1:y(n - 1) - 6, y2:y(0) + 6, stroke:"var(--dim)", "stroke-width":1, opacity:.7}, sv);
@@ -879,12 +884,14 @@ function parseGpif(xml){
   const at = [...R.getElementsByTagName("Automation")].find(a => txt(a, "Type") === "Tempo");
   const bpm = at ? parseFloat(txt(at, "Value")) || 120 : 120;
   const VAL = {Whole:1, Half:.5, Quarter:.25, Eighth:.125, "16th":1/16, "32nd":1/32, "64th":1/64, "128th":1/128};
-  const mbs = [...kid(R, "MasterBars").children], events = {};
+  const mbs = [...kid(R, "MasterBars").children], events = {}, marks = {}, trEls = [...kid(R, "Tracks").children];
   let acc = 0;
   const meters = [], starts = mbs.map(mb => { const a = acc, [nu, de] = txt(mb, "Time").split("/").map(Number); meters.push([nu, de]); acc += nu / de; return a; });
   const secs = mbs.map((mb, i) => { const sc = kid(mb, "Section"), t = sc && (txt(sc, "Text") || txt(sc, "Letter")); return t ? {bar:i, name:t} : null; }).filter(Boolean);
   tracks.forEach((tr, ti) => {
-    const ev = []; let m0 = 0;
+    const ev = [], mk = []; let m0 = 0;
+    const cn = {}, dcp = [...trEls[tr.i].getElementsByTagName("Property")].find(q => q.getAttribute("name") === "DiagramCollection");
+    if (dcp) for (const it of dcp.getElementsByTagName("Item")) cn[it.getAttribute("id")] = it.getAttribute("name") || "";
     mbs.forEach((mb, bi) => {
       const [nu, de] = txt(mb, "Time").split("/").map(Number), bar = bars[txt(mb, "Bars").split(/\s+/)[tr.i]];
       for (const vid of (bar ? txt(bar, "Voices").split(/\s+/) : [])){
@@ -893,6 +900,8 @@ function parseGpif(xml){
         for (const bid of txt(voices[vid], "Beats").split(/\s+/)){
           const b = beats[bid]; if (!b) continue;
           const r = rhy[kid(b, "Rhythm").getAttribute("ref")];
+          const ch = txt(b, "Chord"), ft = txt(b, "FreeText");
+          if (ch !== "" && cn[ch]) mk.push({t, chord:cn[ch]}); if (ft) mk.push({t, text:ft});
           let dur = VAL[txt(r, "NoteValue")] || .25;
           const dot = kid(r, "AugmentationDot"); if (dot) dur *= [1, 1.5, 1.75][+dot.getAttribute("count")] || 1.5;
           const tu = kid(r, "PrimaryTuplet"); if (tu) dur *= tu.getAttribute("den") / tu.getAttribute("num");
@@ -901,22 +910,39 @@ function parseGpif(xml){
             const n = notes[nid], tie = kid(n, "Tie"), sp = prop(n, "String"), fp = prop(n, "Fret");
             if (!n || !sp || !fp || prop(n, "Muted") || (tie && tie.getAttribute("destination") === "true")) continue;
             const st = +txt(sp, "String"), f = +txt(fp, "Fret");
-            if (st < tr.tuning.length) ev.push({t, dur, s:st, f, n:tr.tuning[st] + f, bar:bi});
+            if (st >= tr.tuning.length) continue;
+            let bd = null;
+            if (prop(n, "Bended")){
+              const bp = nm => { const q = prop(n, nm); return q ? parseFloat(txt(q, "Float")) : null; }, d = (v, x) => v === null || isNaN(v) ? x : v;
+              const mv = bp("BendMiddleValue"), pts = [[d(bp("BendOriginOffset"), 0), d(bp("BendOriginValue"), 0)]];
+              if (mv !== null && !isNaN(mv)){ pts.push([d(bp("BendMiddleOffset1"), 12), mv]); const m2 = d(bp("BendMiddleOffset2"), 12); if (m2 !== pts[1][0]) pts.push([m2, mv]); }
+              pts.push([d(bp("BendDestinationOffset"), 100), d(bp("BendDestinationValue"), 0)]);
+              bd = pts.sort((a, b) => a[0] - b[0]).map(([o, v]) => [o / 100, v / 50]);   // offset: fraction of note; value: semitones (100 = whole tone)
+            }
+            ev.push({t, dur, s:st, f, n:tr.tuning[st] + f, bar:bi, bd});
           }
           t += dur;
         }
       }
       m0 += nu / de;
     });
-    events[ti] = ev.sort((a, b) => a.t - b.t);
+    events[ti] = ev.sort((a, b) => a.t - b.t); marks[ti] = mk.sort((a, b) => a.t - b.t);
   });
-  return {tracks, events, bpm, starts, meters, secs, len:acc, title:txt(kid(R, "Score"), "Title"), cur:0};
+  return {tracks, events, marks, bpm, starts, meters, secs, len:acc, title:txt(kid(R, "Score"), "Title"), cur:0};
 }
 function gpCols(i){
   const out = []; let last = null;
   gp.events[i].forEach(e => {
     if (!last || e.t - last.t > 1e-6){ last = {t:e.t, bar:e.bar, notes:[]}; out.push(last); }
     last.notes.push({id:nid++, s:e.s, f:e.f, n:e.n, v:90});
+  });
+  let ci = 0;
+  gp.marks[i].forEach(m => {
+    while (ci < out.length && out[ci].t < m.t - 1e-6) ci++;
+    if (ci >= out.length) return;
+    const c = out[ci];
+    if (m.chord && !c.chord) c.chord = m.chord;
+    if (m.text) c.text = c.text ? c.text + " " + m.text : m.text;
   });
   return out;
 }
@@ -963,9 +989,26 @@ function gpSound(n, dur){
   o.start(t); o.stop(t + dur + .6);
 }
 function gpStop(){
-  clearInterval(gpTimer); gpTimer = 0; if (gpAudio) gpAudio.pause();
+  clearInterval(gpTimer); gpTimer = 0; if (gpAudio) gpAudio.pause(); gpBends.length = 0;
   $("gpPlay").textContent = "▶ Play"; $("tl").classList.remove("playing"); clearTimeout(gpCI); gpCI = 0;
   releaseAll(); active.clear(); held.clear(); draw();
+}
+const gpBends = [];
+function gpBendStart(e, dur){
+  const en = active.get(keyOf(e.n, e.s)); if (!en) return;
+  gpBends.push({en, pts:e.bd, t0:performance.now(), ms:dur * 1000});
+  if (!gpBends.raf) gpBends.raf = requestAnimationFrame(gpBendTick);
+}
+function gpBendTick(){
+  const now = performance.now();
+  for (let i = gpBends.length - 1; i >= 0; i--){
+    const b = gpBends[i], P = b.pts;
+    if (active.get(keyOf(b.en.n, b.en.s)) !== b.en){ gpBends.splice(i, 1); continue; }
+    const f = Math.max(P[0][0], Math.min(1, (now - b.t0) / b.ms)); let v = P[P.length - 1][1];
+    for (let k = 0; k < P.length - 1; k++){ const a = P[k], q = P[k + 1]; if (f <= q[0]){ v = q[0] === a[0] ? q[1] : a[1] + (q[1] - a[1]) * (f - a[0]) / (q[0] - a[0]); break; } }
+    b.en.bend = v;
+  }
+  if (gpBends.length){ scheduleDraw(); gpBends.raf = requestAnimationFrame(gpBendTick); } else gpBends.raf = 0;
 }
 function gpHome(){ return gpBM === null ? 0 : gpBM; }
 function gpBarAt(pos){ let bi = 0; while (bi + 1 < gp.starts.length && gp.starts[bi + 1] <= pos + 1e-6) bi++; return bi; }
@@ -997,7 +1040,7 @@ function gpRun(){
     while (i < ev.length && ev[i].t <= pos){
       const e = ev[i++], dur = Math.max(.15, e.dur * kb / sp);
       if (!gpAudio || $("gpSynth").checked) gpSound(e.n, dur);
-      curPick = e.pick || ""; noteOn(e.n, 90, e.s); curPick = "";
+      curPick = e.pick || ""; noteOn(e.n, 90, e.s); curPick = ""; if (e.bd) gpBendStart(e, dur);
       setTimeout(() => { if (gpTimer) noteOff(e.n, e.s); }, dur * 900);
     }
     gpShow(Math.max(0, pos));

@@ -156,6 +156,12 @@
   "audio": "Blues - Dominant Birds - E +++.m4a"
  },
  {
+  "name": "Blues - Hybrid Picking - G +++",
+  "category": "Blues",
+  "gp": "Blues - Hybrid Picking - G +++.gp",
+  "audio": "Blues - Hybrid Picking - G +++.m4a"
+ },
+ {
   "name": "Blues - Jazz - A +++",
   "category": "Blues",
   "gp": "Blues - Jazz - A +++.gp",
@@ -600,10 +606,124 @@
   "audio": "Technique - Bumblebee +++++.m4a"
  },
  {
+  "name": "Technique - Neo Classical - Chord Tones ++",
+  "category": "Technique",
+  "gp": "Technique - Neo Classical - Chord Tones ++.gp",
+  "audio": "Technique - Neo Classical - Chord Tones ++.m4a"
+ },
+ {
+  "name": "Technique - Neo Classical - Pedal Point II ++++",
+  "category": "Technique",
+  "gp": "Technique - Neo Classical - Pedal Point II ++++.gp",
+  "audio": "Technique - Neo Classical - Pedal Point II ++++.mp3"
+ },
+ {
+  "name": "Technique - Neo Classical - Pedal Point IV ++",
+  "category": "Technique",
+  "gp": "Technique - Neo Classical - Pedal Point IV ++.gp",
+  "audio": "Technique - Neo Classical - Pedal Point IV ++.m4a"
+ },
+ {
+  "name": "Technique - Neo Classical - Picking Study ++++",
+  "category": "Technique",
+  "gp": "Technique - Neo Classical - Picking Study ++++.gp",
+  "audio": "Technique - Neo Classical - Picking Study ++++.m4a"
+ },
+ {
+  "name": "Technique - Neo Classical - Picking Study II ++++",
+  "category": "Technique",
+  "gp": "Technique - Neo Classical - Picking Study II ++++.gp",
+  "audio": "Technique - Neo Classical - Picking Study II ++++.m4a"
+ },
+ {
+  "name": "Technique - Neo Classical - Skipping +++",
+  "category": "Technique",
+  "gp": "Technique - Neo Classical - Skipping +++.gp",
+  "audio": "Technique - Neo Classical - Skipping +++.m4a"
+ },
+ {
+  "name": "Technique - Pedal Point ++++",
+  "category": "Technique",
+  "gp": "Technique - Pedal Point ++++.gp",
+  "audio": "Technique - Pedal Point ++++.m4a"
+ },
+ {
+  "name": "Technique - Pentatonic - String Skipping +++",
+  "category": "Technique",
+  "gp": "Technique - Pentatonic - String Skipping +++.gp",
+  "audio": "Technique - Pentatonic - String Skipping +++.m4a"
+ },
+ {
+  "name": "Technique - Pentatonic Double Stops ++",
+  "category": "Technique",
+  "gp": "Technique - Pentatonic Double Stops ++.gp",
+  "audio": "Technique - Pentatonic Double Stops ++.m4a"
+ },
+ {
+  "name": "Technique - Picking Sequence I +++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequence I +++.gp",
+  "audio": "Technique - Picking Sequence I +++.m4a"
+ },
+ {
+  "name": "Technique - Picking Sequence II ++++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequence II ++++.gp",
+  "audio": "Technique - Picking Sequence II ++++.m4a"
+ },
+ {
   "name": "Technique - Picking Sequence IV ++",
   "category": "Technique",
   "gp": "Technique - Picking Sequence IV ++.gp",
   "audio": "Technique - Picking Sequence IV ++.m4a"
+ },
+ {
+  "name": "Technique - Picking Sequence VI ++++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequence VI ++++.gp",
+  "audio": "Technique - Picking Sequence VI ++++.m4a"
+ },
+ {
+  "name": "Technique - Picking Sequences ++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences ++.gp",
+  "audio": "Technique - Picking Sequences ++.m4a"
+ },
+ {
+  "name": "Technique - Picking Sequences - Am  +++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences - Am  +++.gp",
+  "audio": "Technique - Picking Sequences - Am  +++.m4a"
+ },
+ {
+  "name": "Technique - Picking Sequences - Harmony II +++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences - Harmony II +++.gp",
+  "audio": "Technique - Picking Sequences - Harmony II +++.mp3"
+ },
+ {
+  "name": "Technique - Picking Sequences - Harmony III +++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences - Harmony III +++.gp",
+  "audio": "Technique - Picking Sequences - Harmony III +++.wav"
+ },
+ {
+  "name": "Technique - Picking Sequences I - 3 Note[P]+++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences I - 3 Note[P]+++.gp",
+  "audio": "Technique - Picking Sequences I - 3 Note[P]+++.mp3"
+ },
+ {
+  "name": "Technique - Picking Sequences II - 3 Note [P]+++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences II - 3 Note [P]+++.gp",
+  "audio": "Technique - Picking Sequences II - 3 Note [P]+++.mp3"
+ },
+ {
+  "name": "Technique - Picking Sequences III ++++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences III ++++.gp",
+  "audio": "Technique - Picking Sequences III ++++.m4a"
  },
  {
   "name": "Technique - Picking Sequences V ++++",
