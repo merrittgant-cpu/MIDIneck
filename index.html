@@ -145,6 +145,7 @@ html.clean #transport,html.clean #topRow{display:none}
 #libDlg::backdrop{background:rgba(0,0,0,.6)}
 #libList{display:flex;flex-direction:column;gap:6px;overflow:auto;max-height:55vh;margin-top:10px}
 .libItem{text-align:left;padding:10px 12px}
+.libHead{position:sticky;top:0;z-index:1;background:#10151c;font:800 12px system-ui;letter-spacing:.1em;text-transform:uppercase;color:#8fe3ff;padding:10px 4px 4px;border-bottom:1px solid #2c3a4a}
 #quiz.on{border-color:var(--quiz);color:var(--quiz);box-shadow:0 0 10px color-mix(in srgb,var(--quiz) 40%,transparent)}
 </style>
 </head>
@@ -1030,11 +1031,20 @@ $("gpOff").oninput = e => { gpOff = +e.target.value || 0; try{ localStorage.setI
 
 // ---- library
 const U = p => p.split("/").map(encodeURIComponent).join("/");
+const CATS = ["Exercises", "Chords", "Blues", "Scales", "Licks", "Triads", "Technique"];
+const catOf = n => { const c = n.split(" - ")[0].trim(); return CATS.includes(c) ? c : "Exercises"; };
 function libRender(){
   const q = $("libQ").value.toLowerCase(), L = $("libList"); L.innerHTML = "";
-  lib.filter(x => x.name.toLowerCase().includes(q)).forEach(x => {
-    const b = document.createElement("button"); b.className = "libItem"; b.textContent = x.name + (x.audio ? "" : "  (tab only)");
-    b.onclick = () => libPick(x); L.appendChild(b);
+  const hit = lib.filter(x => x.name.toLowerCase().includes(q)), idx = c => CATS.includes(c) ? CATS.indexOf(c) : 99;
+  const cats = [...new Set(hit.map(x => x.category || catOf(x.name)))].sort((a, b) => idx(a) - idx(b) || a.localeCompare(b));
+  cats.forEach(c => {
+    const items = hit.filter(x => (x.category || catOf(x.name)) === c);
+    const h = document.createElement("div"); h.className = "libHead"; h.textContent = c + " · " + items.length; L.appendChild(h);
+    items.forEach(x => {
+      const b = document.createElement("button"); b.className = "libItem";
+      b.textContent = (x.name.startsWith(c + " - ") ? x.name.slice(c.length + 3) : x.name) + (x.audio ? "" : "  (tab only)");
+      b.onclick = () => libPick(x); L.appendChild(b);
+    });
   });
   if (!L.children.length) L.textContent = lib.length ? "No matches." : "No library yet. Open a local folder, or put library.json next to this page.";
 }
@@ -1062,14 +1072,14 @@ $("libDir").onclick = async () => {
       const m = h.kind === "file" && n.match(/^(.*)\.(gp|mp3|m4a|wav|ogg|aac|flac)$/i);
       if (m) (m[2].toLowerCase() === "gp" ? gps : aud)[m[1]] = {n, h};
     }
-    lib = Object.keys(gps).sort().map(k => ({name:k, gp:gps[k].n, audio:aud[k] && aud[k].n,
+    lib = Object.keys(gps).sort().map(k => ({name:k, category:catOf(k), gp:gps[k].n, audio:aud[k] && aud[k].n,
       load: async () => ({buf:await (await gps[k].h.getFile()).arrayBuffer(), audio:aud[k] ? URL.createObjectURL(await aud[k].h.getFile()) : null})}));
     $("libSave").hidden = false; libRender();
   }catch(_){}
 };
 $("libSave").onclick = () => {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(lib.map(({name, gp, audio}) => ({name, gp, audio})), null, 1)], {type:"application/json"}));
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(lib.map(({name, category, gp, audio}) => ({name, category, gp, audio})), null, 1)], {type:"application/json"}));
   a.download = "library.json"; a.click();
 };
 fetch("library.json").then(r => r.ok ? r.json() : Promise.reject()).then(j => {

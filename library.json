@@ -1,17 +1,692 @@
 [
  {
   "name": "Exercises II ++",
+  "category": "Exercises",
   "gp": "Exercises II ++.gp",
   "audio": "Exercises II ++.m4a"
  },
  {
+  "name": "Chords - Bar - A String Roots - Etude ++",
+  "category": "Chords",
+  "gp": "Chords - Bar - A String Roots - Etude ++.gp",
+  "audio": "Chords - Bar - A String Roots - Etude ++.m4a"
+ },
+ {
+  "name": "Chords - Bar - E String Roots - Etude ++",
+  "category": "Chords",
+  "gp": "Chords - Bar - E String Roots - Etude ++.gp",
+  "audio": "Chords - Bar - E String Roots - Etude ++.m4a"
+ },
+ {
+  "name": "Chords - Closed Arpeggiated Picking ++++",
+  "category": "Chords",
+  "gp": "Chords - Closed Arpeggiated Picking ++++.gp",
+  "audio": "Chords - Closed Arpeggiated Picking ++++.m4a"
+ },
+ {
+  "name": "Chords - Jazz ++++",
+  "category": "Chords",
+  "gp": "Chords - Jazz ++++.gp",
+  "audio": "Chords - Jazz ++++.mp3"
+ },
+ {
+  "name": "Chords - Major CAGED ++++",
+  "category": "Chords",
+  "gp": "Chords - Major CAGED ++++.gp",
+  "audio": "Chords - Major CAGED ++++.mp3"
+ },
+ {
+  "name": "Chords - Multi voicing ++++",
+  "category": "Chords",
+  "gp": "Chords - Multi voicing ++++.gp",
+  "audio": "Chords - Multi voicing ++++.wav"
+ },
+ {
+  "name": "Chords - Open Builder I +",
+  "category": "Chords",
+  "gp": "Chords - Open Builder I +.gp",
+  "audio": "Chords - Open Builder I +.m4a"
+ },
+ {
+  "name": "Chords - Open Builder II +",
+  "category": "Chords",
+  "gp": "Chords - Open Builder II +.gp",
+  "audio": "Chords - Open Builder II +.mp3"
+ },
+ {
+  "name": "Chords - Open Builder III ++",
+  "category": "Chords",
+  "gp": "Chords - Open Builder III ++.gp",
+  "audio": "Chords - Open Builder III ++.mp3"
+ },
+ {
+  "name": "Chords - Scale Harmonization A shapes +",
+  "category": "Chords",
+  "gp": "Chords - Scale Harmonization A shapes +.gp",
+  "audio": "Chords - Scale Harmonization A shapes +.m4a"
+ },
+ {
+  "name": "Chords - Scale Harmonization D shapes +",
+  "category": "Chords",
+  "gp": "Chords - Scale Harmonization D shapes +.gp",
+  "audio": "Chords - Scale Harmonization D shapes +.m4a"
+ },
+ {
+  "name": "Chords - Slash Inversions I ++",
+  "category": "Chords",
+  "gp": "Chords - Slash Inversions I ++.gp",
+  "audio": "Chords - Slash Inversions I ++.m4a"
+ },
+ {
+  "name": "Chords - sus & add ++",
+  "category": "Chords",
+  "gp": "Chords - sus & add ++.gp",
+  "audio": "Chords - sus & add ++.mp3"
+ },
+ {
+  "name": "Chords - Voice Leading I +",
+  "category": "Chords",
+  "gp": "Chords - Voice Leading I +.gp",
+  "audio": "Chords - Voice Leading I +.m4a"
+ },
+ {
+  "name": "Chords - Voice Leading II +",
+  "category": "Chords",
+  "gp": "Chords - Voice Leading II +.gp",
+  "audio": "Chords - Voice Leading II +.m4a"
+ },
+ {
+  "name": "Chords - Walking Bass D Major +++",
+  "category": "Chords",
+  "gp": "Chords - Walking Bass D Major +++.gp",
+  "audio": "Chords - Walking Bass D Major +++.m4a"
+ },
+ {
+  "name": "Chords - Walking Bass G Major +++",
+  "category": "Chords",
+  "gp": "Chords - Walking Bass G Major +++.gp",
+  "audio": "Chords - Walking Bass G Major +++.mp3"
+ },
+ {
+  "name": "Blues - Acoustic - A +",
+  "category": "Blues",
+  "gp": "Blues - Acoustic - A +.gp",
+  "audio": "Blues - Acoustic - A +.m4a"
+ },
+ {
+  "name": "Blues - Acoustic - E +++",
+  "category": "Blues",
+  "gp": "Blues - Acoustic - E +++.gp",
+  "audio": "Blues - Acoustic - E +++.mp3"
+ },
+ {
+  "name": "Blues - Acoustic - E ++++",
+  "category": "Blues",
+  "gp": "Blues - Acoustic - E ++++.gp",
+  "audio": "Blues - Acoustic - E ++++.mp3"
+ },
+ {
+  "name": "Blues - Acoustic - G +++",
+  "category": "Blues",
+  "gp": "Blues - Acoustic - G +++.gp",
+  "audio": "Blues - Acoustic - G +++.mp3"
+ },
+ {
+  "name": "Blues - Acoustic Fingerstyle E +++",
+  "category": "Blues",
+  "gp": "Blues - Acoustic Fingerstyle E +++.gp",
+  "audio": "Blues - Acoustic Fingerstyle E +++.mp3"
+ },
+ {
+  "name": "Blues - Boogie Shuffle - E ++++",
+  "category": "Blues",
+  "gp": "Blues - Boogie Shuffle - E ++++.gp",
+  "audio": "Blues - Boogie Shuffle - E ++++.m4a"
+ },
+ {
+  "name": "Blues - Dominant Birds - D ++",
+  "category": "Blues",
+  "gp": "Blues - Dominant Birds - D ++.gp",
+  "audio": "Blues - Dominant Birds - D ++.m4a"
+ },
+ {
+  "name": "Blues - Dominant Birds - E +++",
+  "category": "Blues",
+  "gp": "Blues - Dominant Birds - E +++.gp",
+  "audio": "Blues - Dominant Birds - E +++.m4a"
+ },
+ {
+  "name": "Blues - Jazz - A +++",
+  "category": "Blues",
+  "gp": "Blues - Jazz - A +++.gp",
+  "audio": "Blues - Jazz - A +++.m4a"
+ },
+ {
+  "name": "Blues - Licks - Country ++",
+  "category": "Blues",
+  "gp": "Blues - Licks - Country ++.gp",
+  "audio": "Blues - Licks - Country ++.m4a"
+ },
+ {
+  "name": "Blues - Licks - E ++",
+  "category": "Blues",
+  "gp": "Blues - Licks - E ++.gp",
+  "audio": "Blues - Licks - E ++.m4a"
+ },
+ {
+  "name": "Blues - Licks - E +++",
+  "category": "Blues",
+  "gp": "Blues - Licks - E +++.gp",
+  "audio": "Blues - Licks - E +++.m4a"
+ },
+ {
+  "name": "Blues - Licks - G +++",
+  "category": "Blues",
+  "gp": "Blues - Licks - G +++.gp",
+  "audio": "Blues - Licks - G +++.m4a"
+ },
+ {
+  "name": "Blues - Phrasing - Open E ++",
+  "category": "Blues",
+  "gp": "Blues - Phrasing - Open E ++.gp",
+  "audio": "Blues - Phrasing - Open E ++.m4a"
+ },
+ {
+  "name": "Blues - Phrasing Intro I - A ++",
+  "category": "Blues",
+  "gp": "Blues - Phrasing Intro I - A ++.gp",
+  "audio": "Blues - Phrasing Intro I - A ++.m4a"
+ },
+ {
+  "name": "Blues - Phrasing Intro II- C ++",
+  "category": "Blues",
+  "gp": "Blues - Phrasing Intro II- C ++.gp",
+  "audio": "Blues - Phrasing Intro II- C ++.m4a"
+ },
+ {
+  "name": "Blues - Slow Blues A ++",
+  "category": "Blues",
+  "gp": "Blues - Slow Blues A ++.gp",
+  "audio": "Blues - Slow Blues A ++.mp3"
+ },
+ {
+  "name": "Blues - Wine Bar - A ++",
+  "category": "Blues",
+  "gp": "Blues - Wine Bar - A ++.gp",
+  "audio": "Blues - Wine Bar - A ++.m4a"
+ },
+ {
+  "name": "Scales - Harmonic minor - Position I +++",
+  "category": "Scales",
+  "gp": "Scales - Harmonic minor - Position I +++.gp",
+  "audio": "Scales - Harmonic minor - Position I +++.m4a"
+ },
+ {
+  "name": "Scales - Harmonic minor sequence ++++",
+  "category": "Scales",
+  "gp": "Scales - Harmonic minor sequence ++++.gp",
+  "audio": "Scales - Harmonic minor sequence ++++.m4a"
+ },
+ {
+  "name": "Scales - Harmony I +++",
+  "category": "Scales",
+  "gp": "Scales - Harmony I +++.gp",
+  "audio": "Scales - Harmony I +++.mp3"
+ },
+ {
+  "name": "Scales - Major Pattern ++++",
+  "category": "Scales",
+  "gp": "Scales - Major Pattern ++++.gp",
+  "audio": "Scales - Major Pattern ++++.m4a"
+ },
+ {
+  "name": "Scales - minor - Position I ++",
+  "category": "Scales",
+  "gp": "Scales - minor - Position I ++.gp",
+  "audio": "Scales - minor - Position I ++.m4a"
+ },
+ {
+  "name": "Scales - minor - Position IV +++",
+  "category": "Scales",
+  "gp": "Scales - minor - Position IV +++.gp",
+  "audio": "Scales - minor - Position IV +++.m4a"
+ },
+ {
+  "name": "Scales - minor Pattern - A ++++",
+  "category": "Scales",
+  "gp": "Scales - minor Pattern - A ++++.gp",
+  "audio": "Scales - minor Pattern - A ++++.mp3"
+ },
+ {
+  "name": "Scales - Modes +++",
+  "category": "Scales",
+  "gp": "Scales - Modes +++.gp",
+  "audio": "Scales - Modes +++.m4a"
+ },
+ {
+  "name": "Scales - Open Major ++",
+  "category": "Scales",
+  "gp": "Scales - Open Major ++.gp",
+  "audio": "Scales - Open Major ++.mp3"
+ },
+ {
+  "name": "Scales - Open Pentatonic - Em Etude ++",
+  "category": "Scales",
+  "gp": "Scales - Open Pentatonic - Em Etude ++.gp",
+  "audio": "Scales - Open Pentatonic - Em Etude ++.m4a"
+ },
+ {
+  "name": "Scales - Pentatonic - Sliding +++",
+  "category": "Scales",
+  "gp": "Scales - Pentatonic - Sliding +++.gp",
+  "audio": "Scales - Pentatonic - Sliding +++.m4a"
+ },
+ {
+  "name": "Scales - Pentatonic Pattern +++++",
+  "category": "Scales",
+  "gp": "Scales - Pentatonic Pattern +++++.gp",
+  "audio": "Scales - Pentatonic Pattern +++++.mp3"
+ },
+ {
+  "name": "Scales - Pentatonic Patterns I - A minor ++",
+  "category": "Scales",
+  "gp": "Scales - Pentatonic Patterns I - A minor ++.gp",
+  "audio": "Scales - Pentatonic Patterns I - A minor ++.m4a"
+ },
+ {
+  "name": "Scales - Pentatonic Patterns II - A minor ++",
+  "category": "Scales",
+  "gp": "Scales - Pentatonic Patterns II - A minor ++.gp",
+  "audio": "Scales - Pentatonic Patterns II - A minor ++.m4a"
+ },
+ {
+  "name": "Scales - Pentatonic Positions [P] A minor ++",
+  "category": "Scales",
+  "gp": "Scales - Pentatonic Positions [P] A minor ++.gp",
+  "audio": "Scales - Pentatonic Positions [P] A minor ++.mp3"
+ },
+ {
+  "name": "Scales - Pentatonic Positions [P] C# minor ++",
+  "category": "Scales",
+  "gp": "Scales - Pentatonic Positions [P] C# minor ++.gp",
+  "audio": "Scales - Pentatonic Positions [P] C# minor ++.mp3"
+ },
+ {
+  "name": "Scales - Pentatonic Positions [P] E minor",
+  "category": "Scales",
+  "gp": "Scales - Pentatonic Positions [P] E minor.gp",
+  "audio": "Scales - Pentatonic Positions [P] E minor.m4a"
+ },
+ {
+  "name": "Scales - Sequence - Exotic  ++++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - Exotic  ++++.gp",
+  "audio": "Scales - Sequence - Exotic  ++++.m4a"
+ },
+ {
+  "name": "Scales - Sequence - Legatto - Etude +++++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - Legatto - Etude +++++.gp",
+  "audio": "Scales - Sequence - Legatto - Etude +++++.mp3"
+ },
+ {
+  "name": "Scales - Sequence - Legatto - G ++++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - Legatto - G ++++.gp",
+  "audio": "Scales - Sequence - Legatto - G ++++.m4a"
+ },
+ {
+  "name": "Scales - Sequence - Major - G ++++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - Major - G ++++.gp",
+  "audio": "Scales - Sequence - Major - G ++++.m4a"
+ },
+ {
+  "name": "Scales - Sequence - minor ++++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - minor ++++.gp",
+  "audio": "Scales - Sequence - minor ++++.mp3"
+ },
+ {
+  "name": "Scales - Sequence - minor - E minor ++++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - minor - E minor ++++.gp",
+  "audio": "Scales - Sequence - minor - E minor ++++.m4a"
+ },
+ {
+  "name": "Scales - Sequence - Pentatonic ++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - Pentatonic ++.gp",
+  "audio": "Scales - Sequence - Pentatonic ++.m4a"
+ },
+ {
+  "name": "Scales - Sequence - Pentatonic III - E minor - ++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - Pentatonic III - E minor - ++.gp",
+  "audio": "Scales - Sequence - Pentatonic III - E minor - ++.m4a"
+ },
+ {
+  "name": "Scales - Sequence - Pentatonic IV - A minor +++",
+  "category": "Scales",
+  "gp": "Scales - Sequence - Pentatonic IV - A minor +++.gp",
+  "audio": "Scales - Sequence - Pentatonic IV - A minor +++.m4a"
+ },
+ {
+  "name": "Scales - Sequence 3rds - Major+++++",
+  "category": "Scales",
+  "gp": "Scales - Sequence 3rds - Major+++++.gp",
+  "audio": "Scales - Sequence 3rds - Major+++++.mp3"
+ },
+ {
+  "name": "Scales - Six Note - Legatto +++",
+  "category": "Scales",
+  "gp": "Scales - Six Note - Legatto +++.gp",
+  "audio": "Scales - Six Note - Legatto +++.mp3"
+ },
+ {
   "name": "Scales - Six Note Picked ++",
+  "category": "Scales",
   "gp": "Scales - Six Note Picked ++.gp",
   "audio": "Scales - Six Note Picked ++.mp3"
  },
  {
+  "name": "Scales - Two String Horizontal - C Major++++",
+  "category": "Scales",
+  "gp": "Scales - Two String Horizontal - C Major++++.gp",
+  "audio": "Scales - Two String Horizontal - C Major++++.mp3"
+ },
+ {
+  "name": "Licks - Legatto Ascending +++++",
+  "category": "Licks",
+  "gp": "Licks - Legatto Ascending +++++.gp",
+  "audio": "Licks - Legatto Ascending +++++.mp3"
+ },
+ {
+  "name": "Licks - Legatto Triad Etude +++++",
+  "category": "Licks",
+  "gp": "Licks - Legatto Triad Etude +++++.gp",
+  "audio": "Licks - Legatto Triad Etude +++++.wav"
+ },
+ {
+  "name": "Licks - Octave Triads - Etude +++++",
+  "category": "Licks",
+  "gp": "Licks - Octave Triads - Etude +++++.gp",
+  "audio": "Licks - Octave Triads - Etude +++++.mp3"
+ },
+ {
+  "name": "Licks - Pentatonic Connection ++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic Connection ++.gp",
+  "audio": "Licks - Pentatonic Connection ++.m4a"
+ },
+ {
+  "name": "Licks - Pentatonic Connection +++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic Connection +++.gp",
+  "audio": "Licks - Pentatonic Connection +++.m4a"
+ },
+ {
+  "name": "Licks - Pentatonic Flat Five I ++++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic Flat Five I ++++.gp",
+  "audio": "Licks - Pentatonic Flat Five I ++++.m4a"
+ },
+ {
+  "name": "Licks - Pentatonic Flat Five II +++++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic Flat Five II +++++.gp",
+  "audio": "Licks - Pentatonic Flat Five II +++++.m4a"
+ },
+ {
+  "name": "Licks - Pentatonic Flat Five III +++++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic Flat Five III +++++.gp",
+  "audio": "Licks - Pentatonic Flat Five III +++++.mp3"
+ },
+ {
+  "name": "Licks - Pentatonic Flat Five IV +++++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic Flat Five IV +++++.gp",
+  "audio": "Licks - Pentatonic Flat Five IV +++++.m4a"
+ },
+ {
+  "name": "Licks - Pentatonic I +++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic I +++.gp",
+  "audio": "Licks - Pentatonic I +++.m4a"
+ },
+ {
+  "name": "Licks - Pentatonic II +++",
+  "category": "Licks",
+  "gp": "Licks - Pentatonic II +++.gp",
+  "audio": "Licks - Pentatonic II +++.m4a"
+ },
+ {
+  "name": "Licks - Triad Sliding ++++",
+  "category": "Licks",
+  "gp": "Licks - Triad Sliding ++++.gp",
+  "audio": "Licks - Triad Sliding ++++.m4a"
+ },
+ {
+  "name": "Triads - 3 ocatve - Major ++",
+  "category": "Triads",
+  "gp": "Triads - 3 ocatve - Major ++.gp",
+  "audio": "Triads - 3 ocatve - Major ++.m4a"
+ },
+ {
+  "name": "Triads - 3 octave - minor +++",
+  "category": "Triads",
+  "gp": "Triads - 3 octave - minor +++.gp",
+  "audio": "Triads - 3 octave - minor +++.m4a"
+ },
+ {
+  "name": "Triads - 3 octave - Mixed ++",
+  "category": "Triads",
+  "gp": "Triads - 3 octave - Mixed ++.gp",
+  "audio": "Triads - 3 octave - Mixed ++.m4a"
+ },
+ {
+  "name": "Triads - 3 octave - Mixed +++",
+  "category": "Triads",
+  "gp": "Triads - 3 octave - Mixed +++.gp",
+  "audio": "Triads - 3 octave - Mixed +++.mp3"
+ },
+ {
+  "name": "Triads - Acoustic Etude ++++",
+  "category": "Triads",
+  "gp": "Triads - Acoustic Etude ++++.gp",
+  "audio": "Triads - Acoustic Etude ++++.m4a"
+ },
+ {
+  "name": "Triads - Horizontal Exercise +++",
+  "category": "Triads",
+  "gp": "Triads - Horizontal Exercise +++.gp",
+  "audio": "Triads - Horizontal Exercise +++.m4a"
+ },
+ {
+  "name": "Triads - Horizontal Exercise - E Major",
+  "category": "Triads",
+  "gp": "Triads - Horizontal Exercise - E Major.gp",
+  "audio": "Triads - Horizontal Exercise - E Major.wav"
+ },
+ {
+  "name": "Economy Picking I",
+  "category": "Technique",
+  "gp": "Economy Picking I.gp",
+  "audio": "Economy Picking I.mp3"
+ },
+ {
+  "name": "Economy Picking II",
+  "category": "Technique",
+  "gp": "Economy Picking II.gp",
+  "audio": "Economy Picking II.mp3"
+ },
+ {
+  "name": "Technique -  String Skipping - Etude +++",
+  "category": "Technique",
+  "gp": "Technique -  String Skipping - Etude +++.gp",
+  "audio": "Technique -  String Skipping - Etude +++.m4a"
+ },
+ {
+  "name": "Technique - Arpeggio Picked - Etude +++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Picked - Etude +++.gp",
+  "audio": "Technique - Arpeggio Picked - Etude +++.m4a"
+ },
+ {
+  "name": "Technique - Arpeggio Picked - Etude I ++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Picked - Etude I ++++.gp",
+  "audio": "Technique - Arpeggio Picked - Etude I ++++.wav"
+ },
+ {
+  "name": "Technique - Arpeggio Picked - Etude II ++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Picked - Etude II ++++.gp",
+  "audio": "Technique - Arpeggio Picked - Etude II ++++.wav"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - 5th string - Etude +++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - 5th string - Etude +++++.gp",
+  "audio": "Technique - Arpeggio Sweep - 5th string - Etude +++++.mp3"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - Etude I +++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - Etude I +++++.gp",
+  "audio": "Technique - Arpeggio Sweep - Etude I +++++.mp3"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - Etude II +++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - Etude II +++++.gp",
+  "audio": "Technique - Arpeggio Sweep - Etude II +++++.mp3"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - Etude III ++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - Etude III ++++.gp",
+  "audio": "Technique - Arpeggio Sweep - Etude III ++++.m4a"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - Etude IV++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - Etude IV++++.gp",
+  "audio": "Technique - Arpeggio Sweep - Etude IV++++.m4a"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - Etude V++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - Etude V++++.gp",
+  "audio": "Technique - Arpeggio Sweep - Etude V++++.mp3"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - Tap +++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - Tap +++++.gp",
+  "audio": "Technique - Arpeggio Sweep - Tap +++++.mp3"
+ },
+ {
+  "name": "Technique - Arpeggio Sweep - Tap II +++++",
+  "category": "Technique",
+  "gp": "Technique - Arpeggio Sweep - Tap II +++++.gp",
+  "audio": "Technique - Arpeggio Sweep - Tap II +++++.m4a"
+ },
+ {
+  "name": "Technique - Bumblebee +++++",
+  "category": "Technique",
+  "gp": "Technique - Bumblebee +++++.gp",
+  "audio": "Technique - Bumblebee +++++.m4a"
+ },
+ {
   "name": "Technique - Picking Sequence IV ++",
+  "category": "Technique",
   "gp": "Technique - Picking Sequence IV ++.gp",
   "audio": "Technique - Picking Sequence IV ++.m4a"
+ },
+ {
+  "name": "Technique - Picking Sequences V ++++",
+  "category": "Technique",
+  "gp": "Technique - Picking Sequences V ++++.gp",
+  "audio": "Technique - Picking Sequences V ++++.m4a"
+ },
+ {
+  "name": "Technique - Pull Off Open String- Metal +++",
+  "category": "Technique",
+  "gp": "Technique - Pull Off Open String- Metal +++.gp",
+  "audio": "Technique - Pull Off Open String- Metal +++.m4a"
+ },
+ {
+  "name": "Technique - String Skipping - Pentatonic  I ++++",
+  "category": "Technique",
+  "gp": "Technique - String Skipping - Pentatonic  I ++++.gp",
+  "audio": "Technique - String Skipping - Pentatonic  I ++++.m4a"
+ },
+ {
+  "name": "Technique - String Skipping - Pentatonic Flat Five +++",
+  "category": "Technique",
+  "gp": "Technique - String Skipping - Pentatonic Flat Five +++.gp",
+  "audio": "Technique - String Skipping - Pentatonic Flat Five +++.m4a"
+ },
+ {
+  "name": "Technique - String Skipping - Pentatonic Flat Five II +++++",
+  "category": "Technique",
+  "gp": "Technique - String Skipping - Pentatonic Flat Five II +++++.gp",
+  "audio": "Technique - String Skipping - Pentatonic Flat Five II +++++.m4a"
+ },
+ {
+  "name": "Technique - String Skipping II - Etude +++",
+  "category": "Technique",
+  "gp": "Technique - String Skipping II - Etude +++.gp",
+  "audio": "Technique - String Skipping II - Etude +++.m4a"
+ },
+ {
+  "name": "Technique - String Skipping III - Etude +++",
+  "category": "Technique",
+  "gp": "Technique - String Skipping III - Etude +++.gp",
+  "audio": "Technique - String Skipping III - Etude +++.m4a"
+ },
+ {
+  "name": "Technique - Sweep Major & minor shapes",
+  "category": "Technique",
+  "gp": "Technique - Sweep Major & minor shapes.gp",
+  "audio": "Technique - Sweep Major & minor shapes.mp3"
+ },
+ {
+  "name": "Technique - Tapping - Etude +++++",
+  "category": "Technique",
+  "gp": "Technique - Tapping - Etude +++++.gp",
+  "audio": "Technique - Tapping - Etude +++++.m4a"
+ },
+ {
+  "name": "Technique - Tapping I ++",
+  "category": "Technique",
+  "gp": "Technique - Tapping I ++.gp",
+  "audio": "Technique - Tapping I ++.m4a"
+ },
+ {
+  "name": "Technique - Tapping II ++",
+  "category": "Technique",
+  "gp": "Technique - Tapping II ++.gp",
+  "audio": "Technique - Tapping II ++.m4a"
+ },
+ {
+  "name": "Technique - Tapping III +++",
+  "category": "Technique",
+  "gp": "Technique - Tapping III +++.gp",
+  "audio": "Technique - Tapping III +++.m4a"
+ },
+ {
+  "name": "Technique - Tapping IV +++++",
+  "category": "Technique",
+  "gp": "Technique - Tapping IV +++++.gp",
+  "audio": "Technique - Tapping IV +++++.m4a"
+ },
+ {
+  "name": "Technique - Zakk Wylde Miracle Man",
+  "category": "Technique",
+  "gp": "Technique - Zakk Wylde Miracle Man.gp",
+  "audio": "Technique - Zakk Wylde Miracle Man.m4a"
  }
 ]
