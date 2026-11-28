@@ -192,6 +192,7 @@ html.clean #transport,html.clean #topRow{display:none}
   <label>Trail <select id="trailSel"><option value="0">Off</option><option value="800" selected>Short</option><option value="1500">Medium</option><option value="3000">Long</option></select></label>
   <label>Sync <input type="number" id="gpOff" step="0.01" value="0" style="width:72px" onkeydown="event.stopPropagation()" title="Seconds. Positive = audio starts later than the tab"> s</label>
   <label><input type="checkbox" id="gpSynth"> Synth</label>
+  <button id="syncSave" title="Download library.json with your sync nudges, to upload to GitHub">⬇ Save sync</button>
   <button id="libBtn" class="keep">📚 Library</button>
   <span class="grp keep" id="gpInfo"></span>
   <span class="grp">H = settings · S = sticky · T = tab · Q = quiz</span>
@@ -889,6 +890,17 @@ function parseGpif(xml){
   let acc = 0;
   const meters = [], starts = mbs.map(mb => { const a = acc, [nu, de] = txt(mb, "Time").split("/").map(Number); meters.push([nu, de]); acc += nu / de; return a; });
   const secs = mbs.map((mb, i) => { const sc = kid(mb, "Section"), t = sc && (txt(sc, "Text") || txt(sc, "Letter")); return t ? {bar:i, name:t} : null; }).filter(Boolean);
+  const raw = [...R.getElementsByTagName("Automation")].filter(a => txt(a, "Type") === "Tempo").map(a => {
+    const bi = Math.min(starts.length - 1, +txt(a, "Bar") || 0), ml = meters[bi][0] / meters[bi][1];
+    return {p:starts[bi] + (parseFloat(txt(a, "Position")) || 0) * ml, bpm:parseFloat(txt(a, "Value")) || 120, lin:txt(a, "Linear") === "true"};
+  }).sort((a, b) => a.p - b.p);
+  if (!raw.length) raw.push({p:0, bpm:120, lin:false});
+  if (raw[0].p > 0) raw.unshift({p:0, bpm:raw[0].bpm, lin:false});
+  const TP = [], TB = [];
+  raw.forEach((t, i) => { const nx = raw[i + 1];
+    if (t.lin && nx && nx.p > t.p) for (let k = 0; k < 8; k++){ TP.push(t.p + (nx.p - t.p) * k / 8); TB.push(t.bpm + (nx.bpm - t.bpm) * (k + .5) / 8); }
+    else { TP.push(t.p); TB.push(t.bpm); } });
+  const TS = [0]; for (let i = 1; i < TP.length; i++) TS.push(TS[i - 1] + (TP[i] - TP[i - 1]) * 240 / TB[i - 1]);
   tracks.forEach((tr, ti) => {
     const ev = [], mk = []; let m0 = 0;
     const cn = {}, dcp = [...trEls[tr.i].getElementsByTagName("Property")].find(q => q.getAttribute("name") === "DiagramCollection");
@@ -929,7 +941,7 @@ function parseGpif(xml){
     });
     events[ti] = ev.sort((a, b) => a.t - b.t); marks[ti] = mk.sort((a, b) => a.t - b.t);
   });
-  return {tracks, events, marks, bpm, starts, meters, secs, len:acc, title:txt(kid(R, "Score"), "Title"), cur:0};
+  return {tracks, events, marks, tmap:{P:TP, S:TS, B:TB}, bpm, starts, meters, secs, len:acc, title:txt(kid(R, "Score"), "Title"), cur:0};
 }
 function gpCols(i){
   const out = []; let last = null;
@@ -970,7 +982,7 @@ function gpShow(pos){
   gpPos = pos;
   const fr = Math.min(1, pos / gp.len) * 100; $("tlFill").style.width = fr + "%"; $("tlHead").style.left = fr + "%";
   let bi = 0; while (bi + 1 < gp.starts.length && gp.starts[bi + 1] <= pos + 1e-6) bi++;
-  const sec = pos * 240 / gp.bpm / +$("gpSpeed").value;
+  const sec = gpSec(pos) / +$("gpSpeed").value;
   $("gpTime").textContent = "Bar " + (bi + 1) + " · " + Math.floor(sec / 60) + ":" + String(Math.floor(sec % 60)).padStart(2, "0");
   $("tlBub").textContent = "Bar " + (bi + 1);
   if (liveTab){
@@ -994,6 +1006,9 @@ function gpStop(){
   $("gpPlay").textContent = "▶ Play"; $("tl").classList.remove("playing"); clearTimeout(gpCI); gpCI = 0;
   releaseAll(); active.clear(); held.clear(); draw();
 }
+function gpSec(p){ const T = gp.tmap; let i = T.P.length - 1; while (i > 0 && T.P[i] > p) i--; return T.S[i] + (p - T.P[i]) * 240 / T.B[i]; }
+function gpPosAt(s){ const T = gp.tmap; let i = T.P.length - 1; while (i > 0 && T.S[i] > s) i--; return T.P[i] + (s - T.S[i]) * T.B[i] / 240; }
+function gpBpmAt(p){ const T = gp.tmap; let i = T.P.length - 1; while (i > 0 && T.P[i] > p + 1e-9) i--; return T.B[i]; }
 const gpBends = [];
 function gpBendStart(e, dur){
   const en = active.get(keyOf(e.n, e.s)); if (!en) return;
@@ -1024,7 +1039,7 @@ function gpPlay(){
   gpAC = gpAC || new (window.AudioContext || window.webkitAudioContext)(); gpAC.resume();
   if (gpPos >= gp.len - .01) gpShow(gpHome());
   if (gpBM !== null && +$("ciSel").value && Math.abs(gpPos - gpBM) < 1e-6){   // starting from the bookmark: count in one bar
-    const m = gp.meters[gpBarAt(gpPos)], sp = +$("gpSpeed").value, ms = 60000 / gp.bpm * (4 / m[1]) / sp; let n = 0;
+    const m = gp.meters[gpBarAt(gpPos)], sp = +$("gpSpeed").value, ms = 60000 / gpBpmAt(gpPos) * (4 / m[1]) / sp; let n = 0;
     $("gpPlay").textContent = "⏸ Pause";
     const tick = () => { if (n < +$("ciSel").value){ gpClick(n === 0); $("gpTime").textContent = "Count-in " + (n + 1); n++; gpCI = setTimeout(tick, ms); } else { gpCI = 0; gpRun(); } };
     return tick();
@@ -1032,20 +1047,20 @@ function gpPlay(){
   gpRun();
 }
 function gpRun(){
-  const ev = gp.events[gp.cur], kb = 240 / gp.bpm, sp = +$("gpSpeed").value, t0 = performance.now() - gpPos * kb / sp * 1000;
+  const ev = gp.events[gp.cur], sp = +$("gpSpeed").value, s0 = gpSec(gpPos), t0 = performance.now() - s0 / sp * 1000, endS = gpSec(gp.len);
   let i = ev.findIndex(e => e.t >= gpPos - 1e-6); if (i < 0) i = ev.length;
-  if (gpAudio){ gpAudio.playbackRate = sp; gpAudio.currentTime = Math.max(0, gpPos * kb + gpOff); gpAudio.play().catch(() => {}); }
+  if (gpAudio){ gpAudio.playbackRate = sp; gpAudio.currentTime = Math.max(0, s0 + gpOff); gpAudio.play().catch(() => {}); }
   $("gpPlay").textContent = "⏸ Pause"; $("tl").classList.add("playing");
   gpTimer = setInterval(() => {
-    const song = gpAudio ? gpAudio.currentTime - gpOff : (performance.now() - t0) / 1000 * sp, pos = song / kb;
+    const song = gpAudio ? gpAudio.currentTime - gpOff : (performance.now() - t0) / 1000 * sp, pos = gpPosAt(song);
     while (i < ev.length && ev[i].t <= pos){
-      const e = ev[i++], dur = Math.max(.15, e.dur * kb / sp);
+      const e = ev[i++], dur = Math.max(.15, (gpSec(e.t + e.dur) - gpSec(e.t)) / sp);
       if (!gpAudio || $("gpSynth").checked) gpSound(e.n, dur);
       curPick = e.pick || ""; noteOn(e.n, 90, e.s); curPick = ""; if (e.bd) gpBendStart(e, dur);
       setTimeout(() => { if (gpTimer) noteOff(e.n, e.s); }, dur * 900);
     }
     gpShow(Math.max(0, pos));
-    if (song >= gp.len * kb + (gpAudio ? 1.5 : 0) || (gpAudio && gpAudio.ended)){ gpStop(); gpShow(gpHome()); }
+    if (song >= endS + (gpAudio ? 1.5 : 0) || (gpAudio && gpAudio.ended)){ gpStop(); gpShow(gpHome()); }
   }, 15);
 }
 $("gpSpeed").addEventListener("change", () => { if (!gp) return; if (gpTimer){ gpStop(); gpPlay(); } else gpShow(gpPos); });
@@ -1204,6 +1219,12 @@ function setMode(adv){
   setTimeout(tlBuild, 0);
 }
 modeB.onclick = () => setMode(document.documentElement.classList.contains("student"));
+$("syncSave").onclick = () => {
+  const out = lib.map(x => { let o = x.offset; try{ const v = localStorage.getItem("off:" + x.name); if (v !== null) o = +v; }catch(_){}
+    const r = {name:x.name, category:x.category || catOf(x.name), gp:x.gp, audio:x.audio}; if (o) r.offset = Math.round(o * 1000) / 1000; return r; });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], {type:"application/json"}));
+  a.download = "library.json"; a.click();
+};
 let midiPrev = 0;
 $("mlConn").onclick = () => { midiAccess = null; midiErr = ""; midiTried = true; initMIDI(); };
 setInterval(() => {
