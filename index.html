@@ -177,7 +177,7 @@ html.clean #transport,html.clean #topRow{display:none}
   <label>Labels <select id="labels"><option value="name">Note names</option><option value="fret">Fret numbers</option><option value="int">Intervals</option><option value="pick">Picking (D/U)</option></select></label>
   <label id="rootWrap" style="display:none">Root <select id="rootsel"></select></label>
   <span class="sep"></span>
-  <span id="midiLight" class="grp"><i id="mlDot"></i> <span id="mlTxt">MIDI: not started</span></span>
+  <span id="midiLight" class="grp"><i id="mlDot"></i> <span id="mlTxt">MIDI: not started</span> <button id="mlConn" title="Ask the browser for MIDI access again">🎹 Connect</button></span>
   <button id="quiz" aria-pressed="false" title="Hide note names: only animated green dots (Q)">🎯 Quiz mode</button>
   <span class="sep"></span>
   <input type="file" id="gpFile" accept=".gp" hidden>
@@ -259,7 +259,7 @@ let tuning = TUNINGS["Standard (E A D G B E)"];
 const active = new Map();
 const held = new Set();
 let sustain = false;
-let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [], trail = [], trailMs = 800, curPick = "", gpBM = null, gpCI = 0, midiTried = false, midiN = 0, midiLast = 0, midiNote = "", midiNoteT = 0;
+let midiAccess = null, quiz = false, liveTab = null, gpCol = 0, gpAudio = null, gpOff = 0, gpKey = "", lib = [], trail = [], trailMs = 800, curPick = "", gpBM = null, gpCI = 0, midiTried = false, midiN = 0, midiLast = 0, midiNote = "", midiNoteT = 0, midiErr = "", midiCh = {};
 const ADV0 = false;
 document.documentElement.classList.toggle("student", !ADV0);
 
@@ -532,7 +532,7 @@ function releaseSustain(){ held.forEach(k => { const e = active.get(k); if (e){ 
 const seenMsg = new Map();
 function onMIDI(e){
   const [st, d1, d2] = e.data;
-  midiN++; midiLast = performance.now(); if ((st & 0xf0) === 0x90 && d2 > 0){ midiNote = noteName(d1); midiNoteT = midiLast; }
+  midiN++; midiLast = performance.now(); if ((st & 0xf0) === 0x90 && d2 > 0){ midiNote = noteName(d1); midiNoteT = midiLast; midiCh[st & 15] = midiLast; }
   if ((st & 0xe0) === 0x80){   // note on/off: drop an identical message arriving within 25 ms (second port or double send)
     const k = st + "," + d1 + "," + d2, t = performance.now();
     if (seenMsg.has(k) && t - seenMsg.get(k) < 25) return;
@@ -575,6 +575,7 @@ async function initMIDI(){
     bindInputs();
   }catch(err){
     $("status").textContent = "MIDI access was blocked. Allow MIDI for this page in the browser’s site settings, then reload.";
+    midiErr = "MIDI blocked: click the lock icon by the address bar, Site settings, MIDI devices, Allow, then press Connect.";
   }
 }
 
@@ -1204,11 +1205,14 @@ function setMode(adv){
 }
 modeB.onclick = () => setMode(document.documentElement.classList.contains("student"));
 let midiPrev = 0;
+$("mlConn").onclick = () => { midiAccess = null; midiErr = ""; midiTried = true; initMIDI(); };
 setInterval(() => {
   if (document.documentElement.classList.contains("student")) return;
   const now = performance.now(), rate = (midiN - midiPrev) * 2, ports = midiAccess ? midiAccess.inputs.size : 0; midiPrev = midiN;
+  const chs = Object.keys(midiCh).filter(c => now - midiCh[c] < 8000).map(c => +c + 1).sort((a, b) => a - b);
+  const chInfo = chs.length ? " · ch " + chs.join(",") + (chs.length === 1 && $("chmode").value === "string" ? " (only one channel: set TriplePlay to Mono)" : "") : "";
   $("mlDot").className = !ports ? "off" : now - midiLast < 2000 ? "ok" : "idle";
-  $("mlTxt").textContent = !midiAccess ? "MIDI: not started" : !ports ? "MIDI: no devices" : "MIDI: " + rate + "/s · last note " + (midiNote ? midiNote + " " + Math.round((now - midiNoteT) / 1000) + "s ago" : "none yet");
+  $("mlTxt").textContent = !midiAccess ? (midiErr || "MIDI: not started") : !ports ? "MIDI: no devices" : "MIDI: " + rate + "/s · last note " + (midiNote ? midiNote + " " + Math.round((now - midiNoteT) / 1000) + "s ago" : "none yet") + chInfo;
 }, 500);
 setMode(ADV0);
 
